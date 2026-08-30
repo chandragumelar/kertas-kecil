@@ -1,0 +1,234 @@
+/* Kertas Kecil — worksheet printable design system v1
+   Semua ukuran fisik dalam mm. Target: A4 210x297mm + US Letter 8.5x11in. */
+
+/* ---------- Fonts ---------- */
+@import url("https://fonts.googleapis.com/css2?family=Fredoka:wght@400;500;600;700&family=Nunito:wght@400;600;700&family=Andika:wght@400;700&display=swap");
+/* Ikon: Phosphor Icons (MIT)
+   https://unpkg.com/@phosphor-icons/web@2.1.1/src/bold/style.css
+   https://unpkg.com/@phosphor-icons/web@2.1.1/src/duotone/style.css */
+
+:root {
+  /* Warna utama */
+  --kk-blueberry: #3D5A98;
+  --kk-leaf: #5BA84F;
+  --kk-sunny: #F5C242;
+  --kk-berry: #E8547C;
+  --kk-grape: #7C6BC4;
+
+  /* Netral */
+  --kk-ink: #2E2E38;
+  --kk-guide-gray: #D9DCE3;
+  --kk-paper: #FFFFFF;
+
+  /* Tint 6% untuk blok latar (hilang di versi B&W) */
+  --kk-tint-blueberry: #EBEFF7;
+  --kk-tint-leaf: #E8F2E6;
+  --kk-tint-sunny: #FDF3D6;
+  --kk-tint-berry: #FCE6ED;
+  --kk-tint-grape: #F4F2FB;
+
+  /* Teks aman kontras >= 7:1 di atas paper */
+  --kk-text: #2E2E38;
+  --kk-text-muted: #6B7180;
+  --kk-label: #8A8F9C;
+
+  /* B&W minimal ink */
+  --kk-bw-outline: #000000;      /* ink 100%, stroke 0.4mm */
+  --kk-bw-gray-15: #D9D9D9;      /* isi garis tracing */
+  --kk-bw-gray-30: #B3B3B3;      /* titik start, panah — maksimum */
+
+  /* Fonts */
+  --kk-font-title: "Fredoka", system-ui, sans-serif;
+  --kk-font-ui: "Nunito", system-ui, sans-serif;
+  --kk-font-trace: "Andika", "Nunito", sans-serif;
+
+  /* Type scale */
+  --kk-size-title: 30pt;      /* 28-32pt */
+  --kk-size-subtitle: 18pt;
+  --kk-size-instruction: 13pt;
+  --kk-size-body: 11pt;
+  --kk-size-label: 9pt;
+  --kk-size-caption: 8pt;
+  --kk-size-trace: 110pt;     /* 90-140pt */
+
+  /* Halaman & grid */
+  --kk-page-w: 210mm;
+  --kk-page-h: 297mm;
+  --kk-margin: 15mm;
+  --kk-binding: 8mm;
+  --kk-gutter: 5mm;
+  --kk-columns: 12;
+  --kk-bleed: 3mm;
+  --kk-safe-w: 180mm;         /* common safe area A4 + Letter */
+  --kk-safe-h: 249mm;
+  --kk-rhythm: 5mm;
+
+  /* Ukuran elemen (minimum, jangan diturunkan) */
+  --kk-trace-width: 9mm;      /* 8-10mm */
+  --kk-start-dot: 12mm;
+  --kk-cut-width: 5mm;
+  --kk-cut-offset: 20mm;      /* minimum dari tepi kertas */
+  --kk-object-min: 30mm;      /* diwarnai / ditempel / dipegang */
+  --kk-object-gap: 10mm;      /* 15mm bila digunting */
+  --kk-scribble-min: 100mm;
+  --kk-skill-icon: 14mm;
+  --kk-header-h: 32mm;
+  --kk-footer-h: 12mm;
+  --kk-name-line-h: 8mm;
+  --kk-hairline: 0.4mm;
+  --kk-outline: 0.5mm;
+}
+
+/* ---------- Halaman ---------- */
+.kk-page {
+  width: var(--kk-page-w);
+  height: var(--kk-page-h);
+  box-sizing: border-box;
+  padding: var(--kk-margin);
+  background: var(--kk-paper);
+  color: var(--kk-text);
+  font-family: var(--kk-font-ui);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+/* Versi cetak berjilid: margin dalam +8mm */
+.kk-page--bind-left  { padding-left: calc(var(--kk-margin) + var(--kk-binding)); }
+.kk-page--bind-right { padding-right: calc(var(--kk-margin) + var(--kk-binding)); }
+
+.kk-grid {
+  display: grid;
+  grid-template-columns: repeat(var(--kk-columns), 1fr);
+  gap: var(--kk-gutter);
+}
+.kk-safe-area { width: var(--kk-safe-w); height: var(--kk-safe-h); margin: 0 auto; }
+
+/* ---------- Tipografi ---------- */
+.kk-title      { font: 600 var(--kk-size-title)/1.05 var(--kk-font-title); color: var(--kk-blueberry); margin: 0; }
+.kk-subtitle   { font: 500 var(--kk-size-subtitle)/1.2 var(--kk-font-title); margin: 0; }
+.kk-instruction{ font: 600 var(--kk-size-instruction)/1.4 var(--kk-font-ui); }
+.kk-body       { font: 400 var(--kk-size-body)/1.5 var(--kk-font-ui); max-width: 60ch; }
+.kk-label      { font: 600 var(--kk-size-label)/1.2 var(--kk-font-ui); color: var(--kk-label); }
+.kk-caption    { font: 400 var(--kk-size-caption)/1.3 var(--kk-font-ui); color: var(--kk-text-muted); }
+/* Huruf yang ditrace anak — single-story a & g */
+.kk-trace-letter {
+  font: 400 var(--kk-size-trace)/1 var(--kk-font-trace);
+  color: var(--kk-guide-gray);
+  -webkit-text-stroke: 0.3mm #B9BEC9;
+}
+
+/* ---------- Garis tracing ---------- */
+.kk-trace-path {
+  height: var(--kk-trace-width);
+  border-radius: calc(var(--kk-trace-width) / 2);
+  background: var(--kk-guide-gray);
+  position: relative;
+}
+.kk-trace-path::after { /* dash tengah sebagai panduan */
+  content: "";
+  position: absolute; left: 6mm; right: 6mm; top: 50%;
+  border-top: var(--kk-hairline) dashed var(--kk-paper);
+}
+.kk-start-dot {
+  width: var(--kk-start-dot); height: var(--kk-start-dot);
+  border-radius: 50%; background: var(--kk-leaf);
+}
+.kk-arrow { color: var(--kk-leaf); font-size: 6mm; line-height: 1; }
+
+/* ---------- Garis potong ---------- */
+.kk-cut-line { border-top: var(--kk-cut-width) dashed var(--kk-berry); }
+.kk-cut-line--bw { border-top-color: var(--kk-bw-outline); }
+
+/* ---------- Objek & area ---------- */
+.kk-object {
+  min-width: var(--kk-object-min);
+  min-height: var(--kk-object-min);
+  border: var(--kk-outline) solid var(--kk-ink);
+  border-radius: 6mm;
+  display: flex; align-items: center; justify-content: center;
+}
+.kk-object--round { border-radius: 50%; }
+.kk-object-row { display: flex; gap: var(--kk-object-gap); flex-wrap: wrap; }
+.kk-object-row--cut { gap: 15mm; }
+.kk-scribble-area {
+  min-width: var(--kk-scribble-min);
+  min-height: var(--kk-scribble-min);
+  border: 0.6mm dashed var(--kk-guide-gray);
+  border-radius: 8mm;
+}
+
+/* ---------- Komponen ---------- */
+.kk-header {
+  min-height: var(--kk-header-h);
+  display: flex; align-items: flex-start; gap: 6mm;
+}
+.kk-name-field { display: flex; align-items: baseline; gap: 3mm; margin-top: 4mm; }
+.kk-name-field__line {
+  flex: 1; height: var(--kk-name-line-h);
+  border-bottom: var(--kk-hairline) solid var(--kk-guide-gray);
+}
+.kk-skill-icon {
+  width: var(--kk-skill-icon); height: var(--kk-skill-icon); flex: none;
+  border-radius: 3mm;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 8mm;
+  background: var(--kk-tint-blueberry); color: var(--kk-blueberry);
+}
+.kk-skill-icon--color   { background: var(--kk-tint-berry);  color: var(--kk-berry); }
+.kk-skill-icon--shape   { background: var(--kk-tint-grape);  color: var(--kk-grape); }
+.kk-skill-icon--count   { background: var(--kk-tint-leaf);   color: var(--kk-leaf); }
+.kk-skill-icon--cut     { background: var(--kk-tint-sunny);  color: #B08A12; }
+
+.kk-parent-note {
+  background: var(--kk-tint-grape);
+  border-radius: 3mm;
+  padding: 4mm 5mm;
+  display: flex; gap: 4mm; align-items: flex-start;
+  font: 400 var(--kk-size-body)/1.45 var(--kk-font-ui);
+}
+.kk-parent-note__icon { color: var(--kk-grape); font-size: 6mm; flex: none; }
+
+.kk-badge {
+  display: inline-flex; align-items: center; gap: 2mm;
+  border-radius: 99px; padding: 2mm 4mm;
+  font: 600 var(--kk-size-label)/1 var(--kk-font-ui);
+  background: var(--kk-tint-leaf); color: #3E7A36;
+}
+.kk-badge--lanjut     { background: var(--kk-tint-sunny); color: #8C6A0A; }
+.kk-badge--tantangan  { background: var(--kk-tint-berry); color: #B32E56; }
+
+.kk-footer {
+  min-height: var(--kk-footer-h);
+  display: flex; align-items: center; justify-content: space-between; gap: 4mm;
+  padding-top: 4mm;
+  border-top: 0.3mm solid #EDEEF1;
+  font: 400 var(--kk-size-caption)/1.3 var(--kk-font-ui);
+  color: var(--kk-text-muted);
+}
+.kk-logo { display: flex; align-items: center; gap: 2.5mm; }
+.kk-logo__mark { width: 6mm; height: 6mm; border-radius: 1.5mm; background: var(--kk-blueberry); }
+.kk-logo__name { font: 600 var(--kk-size-caption)/1 var(--kk-font-title); color: var(--kk-blueberry); }
+
+/* ---------- Versi black & white, minimal ink ----------
+   Outline ink 100%: kontur objek, bingkai nama, garis potong.
+   Gray 15%: isi garis tracing, panduan huruf. Gray 30% maksimum.
+   Hilang total: blok warna latar, bidang penuh, warna badge. */
+.kk-bw .kk-title,
+.kk-bw .kk-logo__name          { color: var(--kk-bw-outline); }
+.kk-bw .kk-parent-note         { background: transparent; border: var(--kk-hairline) solid var(--kk-bw-outline); }
+.kk-bw .kk-parent-note__icon,
+.kk-bw .kk-skill-icon          { color: var(--kk-bw-outline); background: transparent; }
+.kk-bw .kk-badge               { background: transparent; color: var(--kk-bw-outline); border: var(--kk-hairline) solid var(--kk-bw-outline); }
+.kk-bw .kk-trace-path          { background: var(--kk-bw-gray-15); }
+.kk-bw .kk-start-dot,
+.kk-bw .kk-arrow               { background: var(--kk-bw-gray-30); color: var(--kk-bw-gray-30); }
+.kk-bw .kk-object              { border-color: var(--kk-bw-outline); background: transparent !important; }
+.kk-bw .kk-logo__mark          { background: var(--kk-bw-outline); }
+.kk-bw .kk-cut-line            { border-top-color: var(--kk-bw-outline); }
+
+/* ---------- Print ---------- */
+@page { size: A4; margin: 0; }
+@media print {
+  .kk-page { break-after: page; box-shadow: none; }
+  .kk-page:last-child { break-after: auto; }
+}
