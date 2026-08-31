@@ -37,6 +37,10 @@ dipakai sebagai `ic("panda", 24)`. Alias pendek bisa ditambahkan di dict
 Beberapa SVG dari svgrepo isinya sedikit melewati viewBox sendiri. Kalau
 `check.py` melaporkan svg keluar viewBox, ganti aset itu dengan yang lain.
 
+Gaya gambar di dalam bundel harus seragam, yaitu berwarna penuh, bukan line
+art. Generator memeriksa jumlah warna tiap aset yang dipakai dan memperingatkan
+kalau ada yang nyaris tanpa warna. Kalau peringatan itu muncul, ganti asetnya.
+
 ## Gambar dari luar
 
 Semua gambar penuh halaman dibaca dari folder `assets/`:

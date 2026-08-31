@@ -221,6 +221,15 @@ def use(key, x, y, sz):
             f'<use href="#a-{key}" width="{sz}" height="{sz}"/></g>')
 
 
+def _kaya_warna(key):
+    """Jumlah warna berbeda di sebuah aset. Dipakai untuk menjaga agar semua
+    gambar di dalam bundel bergaya sama, yaitu berwarna penuh, bukan line art."""
+    t = (SVG_DIR / FILES[key]).read_text()
+    c = set(x.lower() for x in re.findall(r"#[0-9a-fA-F]{6}", t))
+    c |= set(x.lower() for x in re.findall(r"#[0-9a-fA-F]{3}\b", t))
+    return len(c - {"#fff", "#ffffff", "#000", "#000000", "#231f20", "#010101"})
+
+
 def tulis_index():
     milik = {v: k for k, vs in KATEGORI.items() for v in vs}
     grup = {k: [] for k in KATEGORI}
@@ -535,16 +544,15 @@ def size_page(title, instr, rows, note, cari="kecil"):
 
 
 # ============================================================ pola
-def pattern_page(title, instr, seqs, note, badge="Lanjut"):
-    """Deret pola dengan kotak kosong di ujung, lalu titik di kanan.
-    Anak menarik garis lurus dari kotak kosong ke gambar yang cocok."""
-    jawab = [j for _, j in seqs]
-    urut = _acak_selain_pertama(len(seqs))
+def _pola_halaman(title, instr, baris, note, badge="Lanjut"):
+    """baris: list (sel_html, jawaban_html). Kotak kosong di ujung deret,
+    jawaban berjajar di kolom kanan dengan urutan diacak, anak menarik garis."""
+    jawab = [j for _, j in baris]
+    urut = _acak_selain_pertama(len(baris))
     rows = []
-    for i, (keys, _) in enumerate(seqs):
-        sel = "".join(f'<span class="kk-pcell">{ic(k, 15)}</span>' for k in keys)
+    for i, (sel, _) in enumerate(baris):
         if i == 0:
-            kotak = f'<span class="kk-pcell kk-pcell--q kk-pcell--isi">{ic(jawab[0], 15)}</span>'
+            kotak = f'<span class="kk-pcell kk-pcell--q kk-pcell--isi">{jawab[0]}</span>'
             garis = (f'<svg class="kk-mline" viewBox="0 0 100 20" preserveAspectRatio="none">'
                      f'<path d="M2 10 H98" fill="none" stroke="{C["blueberry"]}" '
                      f'stroke-width="1.6" stroke-dasharray="5 4"/></svg>{LABEL_CONTOH}')
@@ -552,11 +560,73 @@ def pattern_page(title, instr, seqs, note, badge="Lanjut"):
             kotak = '<span class="kk-pcell kk-pcell--q">?</span>'
             garis = ""
         rows.append(f'<div class="kk-prow">'
-                    f'<div class="kk-pseq">{sel}{kotak}<span class="kk-dot"></span></div>'
+                    f'<div class="kk-pseq">{sel}<span class="kk-dot"></span></div>'
                     f'<div class="kk-mgap">{garis}</div>'
                     f'<div class="kk-mcell kk-mcell--r"><span class="kk-dot"></span>'
-                    f'<span class="kk-pans">{ic(jawab[urut[i]], 18)}</span></div></div>')
+                    f'<span class="kk-pans">{jawab[urut[i]]}</span></div></div>')
     page(title, instr, "".join(rows), note, "Pola", "flow-arrow", badge, "kk-skill-icon--shape")
+
+
+def _sel(isi, kosong=False, polos=False):
+    kelas = "kk-pcell kk-pcell--q" if kosong else (
+        "kk-pcell kk-pcell--polos" if polos else "kk-pcell")
+    return f'<span class="{kelas}">{isi}</span>'
+
+
+def pattern_page(title, instr, seqs, note, badge="Lanjut"):
+    """Pola dari gambar, misalnya apel anggur apel anggur."""
+    baris = []
+    for keys, jawab in seqs:
+        sel = "".join(_sel(ic(k, 15)) for k in keys) + _sel("?", kosong=True)
+        baris.append((sel, ic(jawab, 15)))
+    _pola_halaman(title, instr, baris, note, badge)
+
+
+def _kotak_warna(nama, mm=17):
+    return (f'<svg viewBox="0 0 40 40" style="width:{mm}mm;height:{mm}mm">'
+            f'<rect x="2" y="2" width="36" height="36" rx="5" fill="{cr(nama)}" '
+            f'stroke="{C["blueberry"]}" stroke-width="1.4"/></svg>')
+
+
+def pattern_color_page(title, instr, seqs, note, badge="Lanjut"):
+    """Pola dari warna saja, tanpa gambar apa pun."""
+    baris = []
+    for warna, jawab in seqs:
+        sel = "".join(_sel(_kotak_warna(w), polos=True) for w in warna) + _sel("?", kosong=True)
+        baris.append((sel, _kotak_warna(jawab)))
+    _pola_halaman(title, instr, baris, note, badge)
+
+
+BENTUK = {
+    "lingkaran": '<circle cx="20" cy="20" r="17" fill="{f}" stroke="{s}" stroke-width="1.6"/>',
+    "kotak": '<rect x="4" y="4" width="32" height="32" rx="3" fill="{f}" stroke="{s}" stroke-width="1.6"/>',
+    "segitiga": '<path d="M20 3 L37 35 H3 Z" fill="{f}" stroke="{s}" stroke-width="1.6" stroke-linejoin="round"/>',
+    "hati": ('<path d="M20 35 C4 24 3 13 10 8 C15 4 19 8 20 12 C21 8 25 4 30 8 '
+             'C37 13 36 24 20 35 Z" fill="{f}" stroke="{s}" stroke-width="1.6" stroke-linejoin="round"/>'),
+}
+
+
+def _kotak_bentuk(nama, warna, mm=17):
+    d = BENTUK[nama].format(f=cr(warna), s=C["blueberry"])
+    return f'<svg viewBox="0 0 40 40" style="width:{mm}mm;height:{mm}mm">{d}</svg>'
+
+
+def pattern_shape_page(title, instr, seqs, note, badge="Lanjut"):
+    """Pola dari bentuk dasar, warnanya sama semua supaya yang dibaca bentuknya."""
+    baris = []
+    for bentuk, warna, jawab in seqs:
+        sel = "".join(_sel(_kotak_bentuk(b, warna), polos=True) for b in bentuk) + _sel("?", kosong=True)
+        baris.append((sel, _kotak_bentuk(jawab, warna)))
+    _pola_halaman(title, instr, baris, note, badge)
+
+
+def pattern_size_page(title, instr, seqs, note, badge="Lanjut"):
+    """Pola dari ukuran benda yang sama, besar kecil besar kecil."""
+    baris = []
+    for key, ukuran, jawab in seqs:
+        sel = "".join(_sel(ic(key, u)) for u in ukuran) + _sel("?", kosong=True)
+        baris.append((sel, ic(key, jawab)))
+    _pola_halaman(title, instr, baris, note, badge)
 
 
 # ============================================================ berhitung
@@ -845,36 +915,57 @@ def panduan_orang_tua():
 def bundel_lainnya():
     NUM[0] += 1
     TOC.append(("Bundel Lainnya", NUM[0], None))
-    seri = [("2 Tahun", "Coretan bebas, tempel, dan bermain warna",
-             ["coretan besar", "cocokkan bentuk", "warnai bidang lebar"]),
-            ("3 Tahun", "Garis, angka awal, dan gunting pertama",
-             ["pra-menulis", "berhitung 1 sampai 10", "gunting garis lurus"]),
-            ("4 Tahun", "Huruf, pola, dan gunting berlekuk",
-             ["menulis nama", "pola tiga gambar", "gunting bentuk"]),
-            ("5 Tahun", "Menulis, membaca awal, dan berhitung",
-             ["huruf sambung", "suku kata", "penjumlahan sederhana"])]
+    seri = [
+        ("2 Tahun", "Coretan bebas dan warna",
+         "Tangan masih menggenggam penuh, jadi semua aktivitas memakai bidang lebar dan tidak "
+         "menuntut ketepatan sama sekali.",
+         ["coretan bebas di bidang besar", "mencocokkan bentuk sederhana",
+          "mewarnai gambar bergaris tebal", "menempel dan menekan", "mengenali warna dasar"],
+         "62 halaman"),
+        ("3 Tahun", "Garis, angka awal, dan gunting pertama",
+         "Buku yang sedang Anda pegang. Anak mulai bisa menahan krayon di dalam jalur dan "
+         "memegang gunting untuk potongan pendek.",
+         ["pra-menulis sembilan jenis garis", "menelusuri angka 1 sampai 9 dan huruf a sampai i",
+          "berhitung sampai sepuluh", "pola gambar, warna, dan bentuk",
+          "menggunting garis lurus dan bergelombang"],
+         "60 halaman"),
+        ("4 Tahun", "Huruf, pola, dan gunting berlekuk",
+         "Genggaman tiga jari mulai matang, jadi bidang latihan mengecil dan tuntutan "
+         "ketepatannya naik.",
+         ["menulis nama sendiri", "huruf a sampai z", "berhitung sampai dua puluh",
+          "pola tiga unsur dan urutan", "menggunting bentuk berlekuk"],
+         "68 halaman"),
+        ("5 Tahun", "Menulis, membaca awal, dan berhitung",
+         "Persiapan masuk sekolah dasar, dengan porsi menulis dan membaca yang jauh lebih "
+         "besar daripada bundel sebelumnya.",
+         ["menulis kata pendek", "suku kata dan bunyi awal", "penjumlahan dan pengurangan kecil",
+          "mengurutkan cerita bergambar", "menggunting dan menempel proyek"],
+         "72 halaman"),
+    ]
     kartu = "".join(
         f'<div class="kk-seri__card{" kk-seri__card--on" if u.startswith("3") else ""}">'
-        f'<span class="kk-seri__u">{u}</span>'
+        f'<div class="kk-seri__head"><span class="kk-seri__u">{u}</span>'
+        f'<span class="kk-seri__n">{n}</span></div>'
         f'<span class="kk-seri__d">{d}</span>'
+        f'<p class="kk-seri__p">{ket}</p>'
         f'<ul class="kk-seri__l">' + "".join(f"<li>{i}</li>" for i in isi) + '</ul></div>'
-        for u, d, isi in seri)
+        for u, d, ket, isi, n in seri)
     PAGES.append(f"""<section class="kk-page">
   <header class="kk-header">
     <div class="kk-skill-icon">{pico("book")}</div>
     <div class="kk-header__top"><h1 class="kk-title">Bundel Lainnya</h1></div>
   </header>
   <div class="kk-content">
-    <p class="kk-instruction">Kertas Kecil tersedia untuk empat kelompok usia.
-      Setiap bundel disusun ulang dari nol sesuai kemampuan tangan dan rentang
-      perhatian di usia itu, bukan versi lebih mudah dari bundel yang lain.</p>
+    <p class="kk-instruction">Kertas Kecil tersedia untuk empat kelompok usia. Setiap bundel
+      disusun ulang dari nol mengikuti kemampuan tangan dan rentang perhatian di usia itu,
+      bukan versi lebih mudah atau lebih sulit dari bundel yang lain.</p>
     <div class="kk-serigrid">{kartu}</div>
     <div class="kk-parent-note">
       <span class="kk-parent-note__icon">{pico("lightbulb")}</span>
-      <span>Kalau anak menyelesaikan bundel ini dengan mudah dan masih ingin lagi,
-      lanjutkan ke usia berikutnya tanpa menunggu ulang tahunnya. Sebaliknya, kalau
-      terasa berat, bundel usia di bawahnya tetap berguna dan bukan tanda tertinggal.
-      Kabar bundel baru dan ide kegiatan di rumah ada di Instagram
+      <span>Kalau anak menyelesaikan bundel ini dengan mudah dan masih ingin lagi, lanjutkan
+      ke usia berikutnya tanpa menunggu ulang tahunnya. Sebaliknya, kalau terasa berat, bundel
+      usia di bawahnya tetap berguna dan bukan tanda tertinggal. Semua bundel dijual dalam
+      bentuk cetak dan berkas PDF, dan kabar terbarunya ada di Instagram
       <b>@kertaskecil.project</b>.</span>
     </div>
   </div>
@@ -937,7 +1028,7 @@ def bagian_1():
                "Gerakan dari atas ke bawah biasanya dikuasai lebih dulu daripada gerakan "
                "mendatar. Ini dasar huruf l, i, dan t yang akan dipelajari beberapa tahun "
                "lagi. Biarkan anak mengangkat krayon di tengah jalan kalau ia perlu berhenti.",
-               deco=("carrot", "broccoli", "eggplant"), start=(29, 6))
+               deco=("carrot", "corn", "drumstick"), start=(29, 6))
     trace_page("Garis Miring", "Tarik dari titik hijau ke ujung yang lain.",
                "M8 36 L50 8",
                "Garis miring lebih sulit daripada lurus karena tangan harus bergerak ke dua "
@@ -949,7 +1040,7 @@ def bagian_1():
                "Lengkungan melatih pergelangan tangan berputar, bukan cuma jari yang bergeser. "
                "Sebutkan gerakannya sambil anak menarik, misalnya naik lalu turun, karena kata "
                "membantu anak mengingat arah. Bukit dan lembah adalah bahan dasar huruf n dan u.",
-               deco=("camel", "giraffe", "sunrise"), start=(8, 36))
+               deco=("elephant2", "giraffe", "sunrise"), start=(8, 36))
     trace_page("Garis Lembah", "Ikuti jalannya turun lalu naik.",
                "M8 8 Q29 40 50 8",
                "Ini kebalikan dari halaman sebelumnya dan biasanya terasa lebih sulit. Dua arah "
@@ -974,7 +1065,7 @@ def bagian_1():
                "Lingkaran adalah gerakan dasar huruf o, a, c, dan d. Arah putarannya belum perlu "
                "diseragamkan sekarang, yang penting anak berani menutup bentuknya. Banyak anak "
                "berhenti sebelum lingkarannya tersambung, dan itu wajar.",
-               deco=("cherry", "donut", "pizza"), start=(29, 8))
+               deco=("watermelon", "donut", "pizza"), start=(29, 8))
     trace_page("Garis Silang", "Tarik dua garis sampai bersilangan.",
                "M10 8 L48 36 M48 8 L10 36",
                "Menyilang berarti tangan harus melewati garis tengah tubuh, dan itu tahap "
@@ -1004,26 +1095,26 @@ def bagian_2():
                "Sebut angkanya keras-keras setiap kali ditelusuri karena suara membantu ingatan "
                "lebih daripada gerakan tangan saja. Anak belum perlu tahu bahwa angka 2 berarti "
                "dua benda, itu urusan Bagian 5. Di sini yang dilatih hanya bentuknya.",
-               "Angka", ("banana", "butterfly", "rooster"))
+               "Angka", ("melon", "butterfly", "rooster"))
     glyph_page("Telusuri Angka 4 5 6", "Telusuri angkanya. Mulai dari titik hijau.",
                ["4", "5", "6"],
                "Angka 4 dan 5 sama-sama punya dua goresan terpisah, jadi anak boleh mengangkat "
                "krayonnya di tengah. Kalau anak menelusuri dari arah yang berbeda, biarkan dulu, "
                "arah baku bisa menyusul di usia lima tahun. Yang penting bentuk akhirnya "
                "terbaca sebagai angka itu.",
-               "Angka", ("crab", "rainbow", "egg"))
+               "Angka", ("crab", "rainbow", "cake"))
     glyph_page("Telusuri Angka 7 8 9", "Telusuri angkanya pelan-pelan.",
                ["7", "8", "9"],
                "Angka 8 adalah yang paling sulit di halaman ini karena jalurnya menyilang di "
                "tengah. Boleh dipecah dulu jadi dua lingkaran yang ditumpuk. Kalau anak lelah "
                "setelah dua baris, berhenti saja dan lanjutkan besok.",
-               "Angka", ("cherry", "strawberry", "chilli"))
+               "Angka", ("watermelon", "watermelon", "pizza"))
     glyph_page("Telusuri Huruf a b c", "Telusuri hurufnya. Sebut bunyinya sambil menarik.",
                ["a", "b", "c"],
                "Huruf kecil lebih sering ditemui anak dalam buku cerita daripada huruf besar, "
                "jadi mengenalkannya lebih dulu masuk akal. Bunyikan hurufnya, bukan namanya, "
                "misalnya be untuk b. Anak tiga tahun belum diharapkan hafal, cukup akrab.",
-               "Huruf", ("apple", "bird", "camera"))
+               "Huruf", ("apple2", "bird", "camera"))
     glyph_page("Telusuri Huruf d e f", "Telusuri hurufnya dari titik hijau.",
                ["d", "e", "f"],
                "Huruf b dan d sering tertukar sampai usia enam atau tujuh tahun, jadi jangan "
@@ -1050,33 +1141,33 @@ def bagian_3():
                "dengan tangan supaya pilihannya lebih sedikit. Menarik garis panjang melintasi "
                "halaman juga latihan motorik tersendiri.")
     match_page("Cocokkan Buahnya", "Tarik garis ke buah yang sama.",
-               [("banana", "banana"), ("cherry", "cherry"), ("broccoli", "broccoli"),
-                ("eggplant", "eggplant"), ("chilli", "chilli")],
+               [("melon", "melon"), ("carrot", "pizza"), ("corn", "corn"),
+                ("drumstick", "drumstick"), ("pizza", "pizza")],
                "Sambil mencocokkan, sebut nama dan warna buahnya supaya satu halaman melatih "
                "dua hal sekaligus. Wortel sengaja diselipkan di antara buah untuk memancing "
                "percakapan tentang mana yang buah dan mana yang sayur. Jawaban anak tidak perlu "
                "benar, obrolannya yang berharga.")
     choose_page("Mana yang Sama", "Lingkari gambar yang sama dengan gambar di kotak kiri.",
-                [("cat", ["dog", "cat", "mouse", "owl"], 1),
+                [("cat", ["dog", "cat", "chipmunk", "owl"], 1),
                  ("pizza", ["cake", "fries", "pizza", "hotdog"], 2),
                  ("whale", ["whale", "octopus", "crab", "shrimp"], 0),
-                 ("car", ["rocket", "train", "truck", "car"], 3)],
+                 ("car", ["rocket", "stroller", "truck", "car"], 3)],
                 "Lingkaran yang berantakan tetap dihitung benar, yang dinilai pilihannya. "
                 "Kalau anak menunjuk dengan jari lebih dulu sebelum melingkari, itu justru "
                 "cara berpikir yang bagus. Baris pertama sudah dilingkari sebagai contoh.",
                 "Cocokkan", "magnifying-glass")
     choose_page("Mana yang Berbeda", "Coret satu gambar yang berbeda sendiri.",
-                [(None, ["duck", "duck", "duck", "macaw"], 3),
+                [(None, ["rooster", "rooster", "rooster", "macaw"], 3),
                  (None, ["cup", "cup", "pot", "cup"], 2),
                  (None, ["sushi", "juice", "juice", "juice"], 0),
-                 (None, ["tree", "tree", "tree", "sun"], 3)],
+                 (None, ["tree", "tree", "tree", "sunrise"], 3)],
                 "Setelah anak memilih, tanyakan kenapa gambar itu berbeda. Jawabannya lebih "
                 "berharga daripada coretannya, dan sering memperlihatkan cara anak "
                 "mengelompokkan benda. Kalau alasannya masuk akal menurut anak, terima saja "
                 "meskipun bukan yang Anda pikirkan.",
                 "Bedakan", "x-circle")
     size_page("Besar dan Kecil", "Lingkari yang paling kecil di setiap baris.",
-              [("elephant", (30, 15, 22)), ("pineapple", (16, 28, 23)),
+              [("elephant", (30, 15, 22)), ("melon", (16, 28, 23)),
                ("dolphin", (24, 30, 14)), ("cactus", (21, 14, 29))],
               "Mencari yang paling kecil ternyata lebih sulit daripada mencari yang paling "
               "besar, karena mata anak cenderung tertarik ke benda terbesar lebih dulu. "
@@ -1084,7 +1175,7 @@ def bagian_3():
               "teh. Kata paling kecil sebaiknya sering diucapkan dalam percakapan sehari-hari.",
               cari="kecil")
     match_page("Cocokkan Kendaraannya", "Tarik garis ke kendaraan yang sama.",
-               [("truck", "truck"), ("rocket", "rocket"), ("train", "train"),
+               [("truck", "truck"), ("rocket", "rocket"), ("stroller", "stroller"),
                 ("skates", "skates")],
                "Halaman ini mengulang keterampilan yang sama dengan gambar berbeda, dan "
                "pengulangan seperti itu memang disengaja. Anak usia tiga tahun butuh bertemu "
@@ -1096,80 +1187,82 @@ def bagian_4():
     divider(4, "Pola")
     pattern_page("Lanjutkan Pola", "Lihat urutannya, lalu tarik garis dari kotak kosong "
                  "ke gambar yang cocok.",
-                 [(["apple", "grape", "apple", "grape"], "apple"),
-                  (["sun", "rain", "sun", "rain"], "sun"),
-                  (["leaf", "forest", "leaf", "forest"], "leaf"),
+                 [(["apple2", "juice", "apple2", "juice"], "apple2"),
+                  (["sunrise", "rain", "sunrise", "rain"], "sunrise"),
+                  (["forest", "flower", "forest", "flower"], "forest"),
                   (["hat", "glasses", "hat", "glasses"], "hat")],
-                 "Bacakan polanya keras-keras, misalnya apel, anggur, apel, anggur, lalu? "
-                 "Telinga menangkap pola jauh lebih cepat daripada mata di usia ini. Kotak "
-                 "pertama sudah disambungkan sebagai contoh supaya anak paham yang diminta.")
-    pattern_page("Pola Dua Gambar", "Lihat urutannya, lalu tarik garis dari kotak kosong "
-                 "ke gambar yang cocok.",
-                 [(["apple", "apple", "carrot", "carrot"], "apple"),
-                  (["crab", "crab", "octopus", "octopus"], "crab"),
-                  (["comb", "comb", "toothbrush", "toothbrush"], "comb"),
-                  (["ruler", "ruler", "pencil2", "pencil2"], "ruler")],
-                 "Pola dua-dua lebih sulit daripada selang-seling karena anak harus menahan "
-                 "dua gambar sekaligus dalam ingatan. Kalau macet, kembali ke halaman "
-                 "sebelumnya tanpa berkomentar. Mundur satu langkah bukan kegagalan, itu cara "
-                 "kerja belajar di usia ini.")
-    pattern_page("Pola Warna", "Lihat urutannya, lalu tarik garis dari kotak kosong "
-                 "ke gambar yang cocok.",
-                 [(["strawberry", "avocado", "strawberry", "avocado"], "strawberry"),
-                  (["butterfly", "ladybug", "butterfly", "ladybug"], "butterfly"),
-                  (["cake", "juice", "cake", "juice"], "cake"),
-                  (["headphone", "camera", "headphone", "camera"], "headphone")],
-                 "Pola bisa dibuat dari apa saja, bukan cuma gambar di kertas. Coba susun "
-                 "sendok dan garpu berselang-seling di meja makan lalu minta anak "
-                 "melanjutkannya. Latihan seperti itu jauh lebih melekat daripada halaman ini.")
-    pattern_page("Pola Tiga Gambar", "Lihat urutannya, lalu tarik garis dari kotak kosong "
-                 "ke gambar yang cocok.",
-                 [(["apple", "grape", "corn", "apple", "grape"], "corn"),
-                  (["cat", "dog", "duck", "cat", "dog"], "duck"),
-                  (["camel", "tiger", "giraffe", "camel", "tiger"], "giraffe")],
-                 "Ini halaman tersulit di bagian pola dan anak tiga tahun boleh melewatinya "
-                 "sama sekali. Kalau ingin dicoba, tutup dua gambar terakhir dengan tangan "
-                 "supaya deretnya terlihat lebih pendek. Simpan halaman ini untuk beberapa "
-                 "bulan lagi kalau terasa terlalu berat.",
-                 badge="Tantangan")
+                 "Bacakan polanya keras-keras, misalnya apel, jus, apel, jus, lalu? Telinga "
+                 "menangkap pola jauh lebih cepat daripada mata di usia ini. Baris pertama "
+                 "sudah disambungkan sebagai contoh supaya anak paham yang diminta.")
+    pattern_size_page("Pola Besar Kecil",
+                      "Lihat urutan ukurannya, lalu tarik garis ke gambar yang cocok.",
+                      [("cat", (20, 12, 20, 12), 20),
+                       ("truck", (12, 20, 12, 20), 12),
+                       ("flower", (20, 12, 20, 12), 20),
+                       ("fish", (12, 20, 12, 20), 12)],
+                      "Di halaman ini gambarnya sama, yang berganti hanya ukurannya, jadi anak "
+                      "harus memperhatikan besar kecil dan bukan bendanya. Sebut sambil "
+                      "menunjuk: besar, kecil, besar, kecil, lalu? Kalau anak bingung, tutup "
+                      "dua kotak terakhir dengan tangan supaya deretnya terlihat lebih pendek.")
+    pattern_color_page("Pola Warna",
+                       "Lihat urutan warnanya, lalu tarik garis ke warna yang cocok.",
+                       [(["berry", "sky", "berry", "sky"], "berry"),
+                        (["sunny", "leaf", "sunny", "leaf"], "sunny"),
+                        (["grape", "orange", "grape", "orange"], "grape"),
+                        (["sky", "sunny", "sky", "sunny"], "sky")],
+                       "Halaman ini sengaja tanpa gambar sama sekali supaya anak membaca "
+                       "warnanya saja. Sebutkan nama warnanya sambil menunjuk satu per satu. "
+                       "Kalau anak belum hafal nama warna, cukup minta ia mencari kotak yang "
+                       "sama persis, karena mencocokkan lebih dulu datang daripada menamai.")
+    pattern_shape_page("Pola Bentuk",
+                       "Lihat urutan bentuknya, lalu tarik garis ke bentuk yang cocok.",
+                       [(["lingkaran", "kotak", "lingkaran", "kotak"], "sky", "lingkaran"),
+                        (["segitiga", "lingkaran", "segitiga", "lingkaran"], "leaf", "segitiga"),
+                        (["hati", "segitiga", "hati", "segitiga"], "berry", "hati"),
+                        (["kotak", "hati", "kotak", "hati"], "grape", "kotak")],
+                       "Warna dalam satu baris sengaja dibuat sama supaya yang dibaca anak "
+                       "bentuknya, bukan warnanya. Setelah selesai, cari benda berbentuk sama "
+                       "di sekitar rumah, misalnya piring bulat dan buku kotak. Bentuk dasar "
+                       "ini juga muncul lagi di bagian menggunting.",
+                       badge="Tantangan")
 
 
 def bagian_5():
     divider(5, "Berhitung")
     count_page("Hitung Sampai Tiga", "Hitung benda di dalam kotak, lalu lingkari angkanya.",
                [("cake", 1, [1, 2, 3]), ("rooster", 2, [1, 2, 3]), ("crab", 3, [1, 2, 3]),
-                ("leaf", 2, [1, 2, 3])],
+                ("forest", 2, [1, 2, 3])],
                "Sentuh tiap benda sambil menyebut angkanya, karena menghitung tanpa menyentuh "
                "hampir selalu meleset di usia ini. Angka terakhir yang disebut adalah "
                "jumlahnya, dan konsep itu butuh berbulan-bulan untuk benar-benar dipahami. "
                "Baris pertama sudah dijawab sebagai contoh.")
     count_page("Hitung Sampai Lima", "Hitung benda di dalam kotak, lalu lingkari angkanya.",
-               [("cherry", 4, [3, 4, 5]), ("shuttlecock", 5, [3, 4, 5]),
-                ("banana", 3, [3, 4, 5]), ("ladybug", 5, [3, 4, 5])],
+               [("sushi", 4, [3, 4, 5]), ("shuttlecock", 5, [3, 4, 5]),
+                ("melon", 3, [3, 4, 5]), ("ladybug", 5, [3, 4, 5])],
                "Kalau anak menghitung ulang benda yang sama atau melewatkan satu, itu hal "
                "paling umum di usia tiga tahun. Menunjuk satu per satu sambil menghitung "
                "membantu, begitu juga menggeser benda nyata ke sisi lain setelah dihitung. "
                "Hitung bersama, jangan langsung membetulkan.")
     count_page("Hitung Sampai Sepuluh", "Hitung benda di dalam kotak, lalu lingkari angkanya.",
-               [("key", 7, [6, 7, 8]), ("egg", 6, [6, 7, 8]), ("fries", 8, [6, 7, 8])],
+               [("key", 7, [6, 7, 8]), ("cake", 6, [6, 7, 8]), ("fries", 8, [6, 7, 8])],
                "Di atas lima, susun benda berbaris dulu supaya lebih mudah dihitung, karena "
                "tumpukan acak membuat anak kehilangan jejak. Banyak anak tiga tahun hafal urutan "
                "sampai sepuluh tapi belum bisa memakainya untuk menghitung, dan itu dua "
                "kemampuan yang berbeda. Halaman ini melatih yang kedua.")
     count_match_page("Cocokkan Jumlah", "Tarik garis dari kelompok benda ke angka yang tepat.",
-                     [("shrimp", 2), ("mouse", 4), ("apple", 3), ("butterfly", 5), ("bulb", 1)],
+                     [("shrimp", 2), ("chipmunk", 4), ("apple2", 3), ("butterfly", 5), ("bulb", 1)],
                      "Halaman ini menyambungkan jumlah benda dengan lambang angkanya, "
                      "penghubung yang tidak otomatis bagi anak. Kalau salah, hitung bersama "
                      "sambil menunjuk lalu biarkan anak memperbaiki sendiri. Baris pertama "
                      "sudah disambungkan sebagai contoh.")
     more_page("Mana yang Lebih Banyak", "Lingkari kelompok yang lebih banyak.",
-              [("cup", 2, 5), ("fish", 6, 3), ("pig", 4, 2), ("strawberry", 3, 7)],
+              [("cup", 2, 5), ("fish", 6, 3), ("pig", 4, 2), ("hotdog", 3, 7)],
               "Anak sering memilih kelompok yang memakan tempat lebih luas, bukan yang benar "
               "lebih banyak, dan itu normal. Kalau terjadi, rapatkan benda di satu sisi lalu "
               "tanyakan lagi. Membandingkan jumlah tanpa menghitung adalah kemampuan yang "
               "berkembang perlahan sampai usia lima tahun.")
     more_page("Mana yang Lebih Sedikit", "Lingkari kelompok yang lebih sedikit.",
-              [("owl", 5, 2), ("carrot", 3, 6), ("bunny", 7, 4), ("grape", 2, 5)],
+              [("owl", 5, 2), ("carrot", 3, 6), ("bunny", 7, 4), ("juice", 2, 5)],
               "Mencari yang lebih sedikit lebih sulit daripada mencari yang lebih banyak, "
               "karena anak harus menahan dorongan memilih kelompok yang paling menarik "
               "perhatian. Kalau anak keliru, hitung kedua kelompok bersama lalu bandingkan "
@@ -1190,7 +1283,7 @@ def bagian_6():
               "yang keluar kotak sama sekali bukan masalah, justru itu tanda anak menekan "
               "krayonnya dengan berani.")
     hunt_page("Tetesan Hujan k, e, v", "Warnai tetesan sesuai warna contoh di baris atas.",
-              [("k", "sky"), ("e", "leaf"), ("v", "orange")],
+              [("k", "sky"), ("e", "forest"), ("v", "orange")],
               [[("k", None), ("e", None), ("v", None)],
                [("e", None), ("k", None), ("e", None)],
                [("v", None), ("v", None), ("k", None)]],
@@ -1233,50 +1326,45 @@ def bagian_6():
 
 def bagian_7():
     divider(7, "Jalan Berliku")
-    path_page("Antar Kepik ke Bunga", "Ikuti jalannya dari bawah sampai ke ujung.",
-              "M20 222 Q20 200 44 194 Q76 186 74 164 Q72 142 42 136 Q14 130 20 106 "
-              "Q26 84 62 82 Q100 80 104 60 Q108 40 138 38 Q168 36 176 22",
-              "ladybug", "flower",
-              "Jalannya sengaja dibuat lebar supaya anak bisa berhasil di percobaan pertama, "
-              "dan panjang supaya ia berlatih bertahan sampai selesai. Kalau ia sudah rapi, "
-              "ulangi halaman ini dengan krayon lebih tipis atau minta ia menariknya tanpa "
-              "mengangkat tangan sama sekali. Awal jalurnya sudah ditarik sebagai contoh.",
-              start_xy=(20, 222), end_xy=(176, 22),
-              deco=[("butterfly", 148, 92, 20), ("tree", 116, 152, 22),
-                    ("flower", 120, 208, 18), ("cactus", 44, 58, 18)])
-    path_page("Jalan Berbelok", "Ikuti jalannya sampai bertemu hiu.",
+    path_page("Naik Turun Bukit", "Ikuti jalannya dari kiri sampai ke ujung kanan.",
+              "M18 200 Q46 122 74 200 Q102 122 130 200 Q158 122 182 178",
+              "kangaroo", "forest",
+              "Jalur naik turun berulang melatih tangan bergerak dengan irama tetap, mirip "
+              "gerakan menulis huruf m dan n nanti. Jalannya sengaja dibuat lebar supaya anak "
+              "berhasil di percobaan pertama. Awal jalurnya sudah ditarik sebagai contoh.",
+              start_xy=(18, 200), end_xy=(182, 178),
+              deco=[("sunrise", 100, 60, 26), ("bird", 44, 78, 20), ("tree", 158, 96, 22)])
+    path_page("Jalan Berbelok", "Ikuti jalannya sampai bertemu paus.",
               "M20 22 H80 V60 H36 V100 H112 V138 H50 V176 H120 V212 H178",
-              "fish", "shark",
+              "fish", "whale",
               "Sudut siku-siku memaksa tangan berhenti total lalu berbelok, dan itu lebih sulit "
               "daripada lengkungan yang mengalir. Perhatikan apakah anak melambat menjelang "
               "belokan, karena itu tanda ia sudah bisa merencanakan gerakan. Kalau ia memotong "
               "sudutnya, tidak apa-apa.",
               start_xy=(20, 22), end_xy=(178, 212),
               deco=[("dolphin", 150, 40, 20), ("fish2", 158, 112, 18),
-                    ("sailboat", 26, 138, 18), ("pelican", 96, 190, 20)])
-    path_page("Jalan Berkelok", "Ikuti jalannya sampai ke ujung.",
-              "M20 26 Q62 8 90 36 Q116 62 78 82 Q40 102 76 122 Q114 142 80 162 "
-              "Q50 180 88 198 Q126 214 176 202",
-              "sailboat", "dolphin",
-              "Kelokan berlawanan arah berturut-turut adalah latihan tersulit di bagian ini "
-              "karena tangan harus berganti arah putar berkali-kali. Boleh dikerjakan separuh "
-              "lalu dilanjutkan lain hari. Kalau anak menyerah di tengah, tandai sampai mana ia "
-              "berhasil dan puji jaraknya.",
-              start_xy=(20, 26), end_xy=(176, 202),
-              deco=[("shark", 162, 46, 20), ("fish", 26, 106, 18),
-                    ("flamingo", 158, 138, 20), ("frog", 30, 194, 18)],
+                    ("sailboat", 26, 138, 18), ("octopus", 96, 190, 20)])
+    path_page("Jalan Bolak-balik", "Ikuti jalannya dari atas, bolak-balik sampai ke bawah.",
+              "M22 24 H160 Q180 24 180 44 Q180 62 160 62 H40 Q20 62 20 82 Q20 100 40 100 "
+              "H160 Q180 100 180 120 Q180 138 160 138 H40 Q20 138 20 158 Q20 176 40 176 "
+              "H160 Q180 176 180 196 Q180 214 160 214 H40",
+              "car", "flower",
+              "Jalur bolak-balik seperti ini memaksa anak berputar balik berkali-kali tanpa "
+              "kehilangan jalur, dan itu latihan ketekunan sekaligus motorik. Boleh dikerjakan "
+              "separuh lalu dilanjutkan besok. Tandai sampai mana anak berhasil supaya ia "
+              "melihat kemajuannya sendiri.",
+              start_xy=(22, 24), end_xy=(40, 214),
+              deco=[("cactus", 100, 82, 18), ("cup", 100, 158, 18)],
               badge="Tantangan")
-    path_page("Pulang ke Sarang", "Ikuti jalannya sampai burung sampai di pohon.",
-              "M22 216 Q56 212 62 188 Q68 162 38 152 Q10 142 24 116 Q40 92 76 96 "
-              "Q112 100 118 76 Q124 52 152 48 Q174 44 178 26",
-              "bird", "tree",
-              "Halaman terakhir bagian ini menggabungkan lengkungan panjang dan pendek dalam "
-              "satu jalur yang mengisi hampir seluruh halaman. Ceritakan perjalanannya sambil "
-              "anak menarik, misalnya burungnya lewat sini dulu lalu naik ke atas. Cerita "
-              "membuat anak bertahan lebih lama daripada perintah.",
-              start_xy=(22, 216), end_xy=(178, 26),
-              deco=[("squirrel", 128, 168, 20), ("chipmunk", 30, 66, 18),
-                    ("owl", 152, 108, 20), ("deer", 92, 208, 20)])
+    path_page("Jalan Berputar", "Ikuti jalannya berputar ke dalam sampai bertemu sarang.",
+              "M20 30 H176 V204 H44 V64 H150 V178 H72 V92 H124 V152 H98",
+              "chipmunk", "owl",
+              "Jalur yang berputar ke dalam membuat anak harus terus mengikuti arah tanpa "
+              "bisa menebak ke mana ujungnya, berbeda dari jalur lurus atau ombak. Kalau anak "
+              "kehilangan jejak, tunjuk saja belokan berikutnya dengan jari. Ini halaman "
+              "penutup bagian ini dan boleh dilewati kalau terasa berat.",
+              start_xy=(20, 30), end_xy=(98, 152),
+              deco=[("butterfly", 30, 230, 20), ("rainbow", 168, 230, 22)])
 
 
 def gambar_penuh_aktivitas(nama, title, instr, note, skill, icon, badge="Mulai", icon_cls=""):
@@ -1328,14 +1416,14 @@ def bagian_8():
 def bagian_9():
     divider(9, "Gunting")
     cut_lines_page("Gunting Sekali Potong", "Potong sekali di setiap garis merah.",
-                   [("pendek", "cake"), ("pendek", "banana"), ("pendek", "donut"),
-                    ("pendek", "egg"), ("pendek", "cherry")],
+                   [("pendek", "cake"), ("pendek", "melon"), ("pendek", "donut"),
+                    ("pendek", "cake"), ("pendek", "watermelon")],
                    "Sekali buka tutup gunting sudah menyelesaikan satu garis, jadi ini titik "
                    "mulai yang paling mudah. Tunjukkan cara memegang gunting dengan jempol di "
                    "atas sekali saja, lalu biarkan anak mencoba. Dampingi terus selama anak "
                    "memegang gunting.")
     cut_lines_page("Gunting Garis Lurus", "Gunting mengikuti garis sampai ke ujung.",
-                   [("lurus", "pig"), ("lurus", "rooster"), ("lurus", "mouse"), ("lurus", "rabbit")],
+                   [("lurus", "pig"), ("lurus", "rooster"), ("lurus", "chipmunk"), ("lurus", "rabbit")],
                    "Bagian tersulit bukan tangan yang memegang gunting, melainkan tangan lain "
                    "yang harus memutar kertas. Perlihatkan gerakannya pelan-pelan sekali lalu "
                    "biarkan anak menemukan caranya sendiri. Potongan yang berbelok keluar garis "
@@ -1352,23 +1440,23 @@ def bagian_9():
                    "Berhenti di setiap sudut, putar kertas, lalu potong lagi. Ini halaman "
                    "tersulit di bagian gunting dan banyak anak tiga tahun belum siap. Boleh "
                    "dikerjakan bersama dengan Anda memegang kertasnya dan anak menggunting.")
-    cut_shape_page("Gunting Bentuk Besar", "Gunting mengikuti garis putus-putus.",
-                   [("M50 6 L94 50 L50 94 L6 50 Z", "butterfly", "grape"),
-                    ("M6 22 H94 V78 H6 Z", "apple", "sunny"),
+    cut_shape_page("Gunting Bentuk Dasar", "Gunting mengikuti garis putus-putus.",
+                   [("M50 6 L94 50 L50 94 L6 50 Z", "butterfly", "juice"),
+                    ("M6 22 H94 V78 H6 Z", "apple2", "sunny"),
                     ("M50 8 A42 42 0 1 1 49.5 8 Z", "donut", "sky"),
-                    ("M50 8 L92 90 L8 90 Z", "tree", "leaf")],
+                    ("M50 8 L92 90 L8 90 Z", "tree", "forest")],
                    "Bentuk besar dengan sedikit sudut dikerjakan lebih dulu. Lingkaran justru "
                    "yang paling sulit karena tidak punya titik berhenti alami. Hasil guntingan "
                    "bisa ditempel di kertas kosong atau dijadikan hiasan supaya usahanya terasa "
                    "ada gunanya.")
-    cut_shape_page("Gunting Bentuk Lucu", "Gunting mengikuti garis putus-putus.",
+    cut_shape_page("Gunting Bentuk Berlekuk", "Gunting mengikuti garis putus-putus.",
                    [("M50 88 C18 66 8 44 20 30 C32 18 46 24 50 34 C54 24 68 18 80 30 "
                      "C92 44 82 66 50 88 Z", "flower", "berry"),
                     ("M50 6 L62 38 L96 38 L68 58 L79 90 L50 70 L21 90 L32 58 L4 38 L38 38 Z",
                      "owl", "sunny"),
                     ("M20 62 A18 18 0 0 1 24 30 A24 24 0 0 1 64 24 A20 20 0 0 1 92 44 "
                      "A16 16 0 0 1 90 62 Z", "bird", "sky"),
-                    ("M50 10 A40 40 0 1 1 49.6 10 Z", "melon", "leaf")],
+                    ("M50 10 A40 40 0 1 1 49.6 10 Z", "melon", "forest")],
                    "Bentuk berlekuk butuh gunting dibuka setengah saja setiap potongan, bukan "
                    "dibuka penuh. Kalau hasilnya sobek, tempel saja di kertas lain dan lanjutkan. "
                    "Yang dilatih prosesnya, bukan bentuk akhirnya.", badge="Tantangan")
@@ -1381,16 +1469,16 @@ def bagian_9():
                    "sesudah halamannya habis. Simpan di amplop supaya tidak hilang.")
     cut_cards_page("Kartu Buah dan Sayur",
                    "Gunting di garis putus-putus, lalu kelompokkan mana buah dan mana sayur.",
-                   [("banana", "pisang"), ("cherry", "ceri"), ("carrot", "wortel"),
-                    ("broccoli", "brokoli"), ("eggplant", "terong"), ("chilli", "cabai")],
+                   [("melon", "pisang"), ("apple2", "ceri"), ("carrot", "wortel"),
+                    ("corn", "brokoli"), ("drumstick", "terong"), ("pizza", "cabai")],
                    "Mengelompokkan lebih berguna daripada menghafal nama, jadi terima alasan "
                    "apa pun yang masuk akal bagi anak. Kalau anak mengelompokkan berdasarkan "
                    "warna, itu juga cara berpikir yang sah. Kartunya bisa dipakai lagi saat "
                    "belanja atau menyiapkan makan.")
     cut_cards_page("Kartu Benda di Rumah",
                    "Gunting di garis putus-putus, lalu cari benda aslinya di rumah.",
-                   [("cup", "gelas"), ("hat", "topi"), ("comb", "sisir"),
-                    ("toothbrush", "sikat gigi"), ("key", "kunci"), ("camera", "kamera")],
+                   [("cup", "gelas"), ("hat", "topi"), ("glasses", "sisir"),
+                    ("pot", "sikat gigi"), ("key", "kunci"), ("camera", "kamera")],
                    "Mencocokkan gambar dengan benda asli di rumah membuat kartu ini terasa "
                    "berguna, bukan sekadar guntingan. Sembunyikan satu kartu lalu minta anak "
                    "menebak benda mana yang hilang kalau ia sudah hafal. Permainan itu melatih "
@@ -1464,6 +1552,7 @@ CSS = """
               width: 20mm; height: 20mm; border-radius: 3mm; background: var(--kk-tint-sunny);
               flex: none; }
   .kk-pseq .kk-pcell:nth-child(even) { background: var(--kk-tint-grape); }
+  .kk-pcell--polos, .kk-pseq .kk-pcell--polos:nth-child(even) { background: transparent; }
   .kk-pcell--q { background: #fff; border: 0.6mm dashed var(--kk-berry);
                  font: 600 20pt/1 var(--kk-font-title); color: var(--kk-berry); }
   .kk-pcell--isi { background: var(--kk-tint-berry); }
@@ -1575,13 +1664,17 @@ CSS = """
   .kk-back__ig { font: 600 11pt/1 var(--kk-font-ui); margin: 6mm 0 0; opacity: .95; }
   .kk-serigrid { flex: 1; display: grid; grid-template-columns: 1fr 1fr; gap: 5mm;
                  min-height: 0; }
-  .kk-seri__card { border: 0.6mm solid #DCE0E8; border-radius: 5mm; padding: 6mm;
-                   display: flex; flex-direction: column; gap: 2mm; }
+  .kk-seri__card { border: 0.6mm solid #DCE0E8; border-radius: 5mm; padding: 5mm;
+                   display: flex; flex-direction: column; gap: 1.5mm; }
+  .kk-seri__head { display: flex; align-items: baseline; justify-content: space-between; }
+  .kk-seri__n { font: 600 9pt/1 var(--kk-font-ui); color: var(--kk-text-muted); }
+  .kk-seri__p { font: 400 8.5pt/1.5 var(--kk-font-ui); color: var(--kk-text-muted);
+                margin: 1mm 0 0; }
   .kk-seri__card--on { border-color: var(--kk-leaf); background: var(--kk-tint-leaf); }
-  .kk-seri__u { font: 600 17pt/1 var(--kk-font-title); color: var(--kk-blueberry); }
-  .kk-seri__d { font: 600 10pt/1.4 var(--kk-font-ui); color: var(--kk-text-muted); }
-  .kk-seri__l { margin: 2mm 0 0; padding-left: 5mm;
-                font: 400 10pt/1.7 var(--kk-font-ui); color: var(--kk-text); }
+  .kk-seri__u { font: 600 15pt/1 var(--kk-font-title); color: var(--kk-blueberry); }
+  .kk-seri__d { font: 600 9.5pt/1.35 var(--kk-font-ui); color: var(--kk-blueberry); }
+  .kk-seri__l { margin: 1.5mm 0 0; padding-left: 4.5mm;
+                font: 400 8.5pt/1.6 var(--kk-font-ui); color: var(--kk-text); }
 
   @media print {
     body { background: #fff; }
@@ -1620,6 +1713,9 @@ def main():
     (ROOT / "worksheet.html").write_text(html)
     print(f"total lembar: {len(PAGES)} | halaman bernomor: {NUM[0]}")
     print(f"aset terpakai: {len(_sym)} dari {len(FILES)}")
+    minim = sorted(k for k in PAKAI if _kaya_warna(k) < 3)
+    if minim:
+        print("gaya tidak seragam, aset ini nyaris tanpa warna:", ", ".join(minim))
     sering = sorted(PAKAI.items(), key=lambda x: -x[1])[:12]
     print("paling sering muncul:", ", ".join(f"{k} {n}x" for k, n in sering))
     kurang = [f"warnai_{i}.jpeg" for i in range(1, 6) if not (ASSET_DIR / f"warnai_{i}.jpeg").exists()]
