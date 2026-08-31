@@ -672,11 +672,12 @@ def count_match_page(title, instr, rows, note, badge="Tantangan"):
 def more_page(title, instr, rows, note, badge="Tantangan", cari="banyak"):
     out = []
     for i, (key, a, b) in enumerate(rows):
-        kiri = "".join(ic(key, 14) for _ in range(a))
-        kanan = "".join(ic(key, 14) for _ in range(b))
-        mark = (f'<svg class="kk-mark kk-mark--wide" viewBox="0 0 200 100"><ellipse cx="100" '
-                f'cy="50" rx="96" ry="46" fill="none" stroke="{C["berry"]}" stroke-width="4"/>'
-                f'</svg>')
+        kiri = "".join(ic(key, 13) for _ in range(a))
+        kanan = "".join(ic(key, 13) for _ in range(b))
+        mark = (f'<svg class="kk-mark kk-mark--wide" viewBox="0 0 200 100" '
+                f'preserveAspectRatio="none"><ellipse cx="100" cy="50" rx="97" ry="47" '
+                f'fill="none" stroke="{C["berry"]}" stroke-width="3" '
+                f'vector-effect="non-scaling-stroke"/></svg>')
         menang_kiri = a > b if cari == "banyak" else a < b
         m_kiri = mark if (i == 0 and menang_kiri) else ""
         m_kanan = mark if (i == 0 and not menang_kiri) else ""
@@ -917,29 +918,40 @@ def bundel_lainnya():
     TOC.append(("Bundel Lainnya", NUM[0], None))
     seri = [
         ("2 Tahun", "Coretan bebas dan warna",
-         "Tangan masih menggenggam penuh, jadi semua aktivitas memakai bidang lebar dan tidak "
-         "menuntut ketepatan sama sekali.",
-         ["coretan bebas di bidang besar", "mencocokkan bentuk sederhana",
-          "mewarnai gambar bergaris tebal", "menempel dan menekan", "mengenali warna dasar"],
+         "Di usia ini krayon masih digenggam dengan seluruh telapak dan gerakan datang dari "
+         "bahu, bukan jari. Semua aktivitas memakai bidang lebar dan tidak menuntut ketepatan.",
+         ["coretan bebas di bidang besar",
+          "meniru garis tegak dan mendatar",
+          "mengelompokkan benda berdasarkan satu ciri",
+          "mewarnai gambar bergaris tebal",
+          "mengenali warna dan bentuk dasar"],
          "62 halaman"),
         ("3 Tahun", "Garis, angka awal, dan gunting pertama",
-         "Buku yang sedang Anda pegang. Anak mulai bisa menahan krayon di dalam jalur dan "
-         "memegang gunting untuk potongan pendek.",
-         ["pra-menulis sembilan jenis garis", "menelusuri angka 1 sampai 9 dan huruf a sampai i",
-          "berhitung sampai sepuluh", "pola gambar, warna, dan bentuk",
+         "Anak mulai bisa meniru lingkaran dan menahan krayon di dalam jalur. Gunting baru "
+         "dipakai untuk potongan sekali tekan, belum untuk mengikuti garis panjang.",
+         ["sembilan jenis garis pra-menulis",
+          "menelusuri angka 1 sampai 9 dan huruf a sampai i",
+          "berhitung sampai sepuluh dengan menyentuh benda",
+          "pola gambar, warna, dan bentuk",
           "menggunting garis lurus dan bergelombang"],
          "60 halaman"),
-        ("4 Tahun", "Huruf, pola, dan gunting berlekuk",
-         "Genggaman tiga jari mulai matang, jadi bidang latihan mengecil dan tuntutan "
-         "ketepatannya naik.",
-         ["menulis nama sendiri", "huruf a sampai z", "berhitung sampai dua puluh",
-          "pola tiga unsur dan urutan", "menggunting bentuk berlekuk"],
+        ("4 Tahun", "Nama, huruf, dan gunting mengikuti garis",
+         "Genggaman tiga jari mulai matang dan anak sudah bisa meniru tanda tambah serta "
+         "persegi. Guntingnya kini mengikuti garis tanpa berhenti di tengah jalan.",
+         ["menulis nama sendiri",
+          "mengenali huruf beserta bunyi awalnya",
+          "berhitung sampai dua puluh dan membandingkan jumlah",
+          "menyalin persegi, segitiga, dan tanda tambah",
+          "menggunting mengikuti garis lengkung"],
          "68 halaman"),
-        ("5 Tahun", "Menulis, membaca awal, dan berhitung",
-         "Persiapan masuk sekolah dasar, dengan porsi menulis dan membaca yang jauh lebih "
-         "besar daripada bundel sebelumnya.",
-         ["menulis kata pendek", "suku kata dan bunyi awal", "penjumlahan dan pengurangan kecil",
-          "mengurutkan cerita bergambar", "menggunting dan menempel proyek"],
+        ("5 Tahun", "Menulis, bunyi kata, dan berhitung",
+         "Tangan sudah cukup mantap untuk membentuk huruf berukuran kecil. Anak mulai "
+         "mendengar bunyi awal kata dan memahami penambahan benda dalam jumlah kecil.",
+         ["menulis huruf dan kata pendek",
+          "suku kata, bunyi awal, dan kata berima",
+          "penjumlahan dan pengurangan sampai sepuluh",
+          "mengurutkan cerita bergambar",
+          "menggunting bentuk utuh untuk ditempel"],
          "72 halaman"),
     ]
     kartu = "".join(
@@ -956,16 +968,15 @@ def bundel_lainnya():
     <div class="kk-header__top"><h1 class="kk-title">Bundel Lainnya</h1></div>
   </header>
   <div class="kk-content">
-    <p class="kk-instruction">Kertas Kecil tersedia untuk empat kelompok usia. Setiap bundel
-      disusun ulang dari nol mengikuti kemampuan tangan dan rentang perhatian di usia itu,
-      bukan versi lebih mudah atau lebih sulit dari bundel yang lain.</p>
+    <p class="kk-instruction">Isi tiap bundel disusun mengikuti tonggak perkembangan motorik
+      halus dan berhitung awal, bukan sekadar versi lebih mudah dari bundel lain.</p>
     <div class="kk-serigrid">{kartu}</div>
     <div class="kk-parent-note">
       <span class="kk-parent-note__icon">{pico("lightbulb")}</span>
-      <span>Kalau anak menyelesaikan bundel ini dengan mudah dan masih ingin lagi, lanjutkan
-      ke usia berikutnya tanpa menunggu ulang tahunnya. Sebaliknya, kalau terasa berat, bundel
-      usia di bawahnya tetap berguna dan bukan tanda tertinggal. Semua bundel dijual dalam
-      bentuk cetak dan berkas PDF, dan kabar terbarunya ada di Instagram
+      <span>Rentang kemampuan anak seusia sangat lebar, jadi umur di kartu ini hanya
+      ancar-ancar. Kalau bundel ini terasa mudah, lanjutkan ke usia berikutnya tanpa menunggu
+      ulang tahunnya. Kalau terasa berat, bundel usia di bawahnya tetap berguna dan bukan
+      tanda tertinggal. Semua bundel ada dalam bentuk cetak dan PDF, kabarnya di Instagram
       <b>@kertaskecil.project</b>.</span>
     </div>
   </div>
@@ -1140,13 +1151,13 @@ def bagian_3():
                "perintahnya tanpa dijelaskan panjang. Kalau anak ragu, tutup sebagian baris "
                "dengan tangan supaya pilihannya lebih sedikit. Menarik garis panjang melintasi "
                "halaman juga latihan motorik tersendiri.")
-    match_page("Cocokkan Buahnya", "Tarik garis ke buah yang sama.",
-               [("melon", "melon"), ("carrot", "pizza"), ("corn", "corn"),
-                ("drumstick", "drumstick"), ("pizza", "pizza")],
-               "Sambil mencocokkan, sebut nama dan warna buahnya supaya satu halaman melatih "
-               "dua hal sekaligus. Wortel sengaja diselipkan di antara buah untuk memancing "
-               "percakapan tentang mana yang buah dan mana yang sayur. Jawaban anak tidak perlu "
-               "benar, obrolannya yang berharga.")
+    match_page("Cocokkan Makanannya", "Tarik garis ke gambar yang sama.",
+               [("apple2", "apple2"), ("melon", "melon"), ("carrot", "carrot"),
+                ("corn", "corn"), ("pizza", "pizza")],
+               "Sambil mencocokkan, sebut nama dan warna makanannya supaya satu halaman "
+               "melatih dua hal sekaligus. Piza sengaja diselipkan di antara buah dan sayur "
+               "untuk memancing percakapan tentang mana yang tumbuh di kebun dan mana yang "
+               "dimasak. Jawaban anak tidak perlu benar, obrolannya yang berharga.")
     choose_page("Mana yang Sama", "Lingkari gambar yang sama dengan gambar di kotak kiri.",
                 [("cat", ["dog", "cat", "chipmunk", "owl"], 1),
                  ("pizza", ["cake", "fries", "pizza", "hotdog"], 2),
@@ -1326,14 +1337,14 @@ def bagian_6():
 
 def bagian_7():
     divider(7, "Jalan Berliku")
-    path_page("Naik Turun Bukit", "Ikuti jalannya dari kiri sampai ke ujung kanan.",
-              "M18 200 Q46 122 74 200 Q102 122 130 200 Q158 122 182 178",
-              "kangaroo", "forest",
-              "Jalur naik turun berulang melatih tangan bergerak dengan irama tetap, mirip "
-              "gerakan menulis huruf m dan n nanti. Jalannya sengaja dibuat lebar supaya anak "
-              "berhasil di percobaan pertama. Awal jalurnya sudah ditarik sebagai contoh.",
-              start_xy=(18, 200), end_xy=(182, 178),
-              deco=[("sunrise", 100, 60, 26), ("bird", 44, 78, 20), ("tree", 158, 96, 22)])
+    path_page("Jalan Menanjak", "Ikuti jalannya dari bawah, naik terus sampai ke puncak.",
+              "M22 220 L168 194 L28 168 L168 142 L28 116 L168 90 L28 64 L110 34",
+              "kangaroo", "sunrise",
+              "Belokan tajam yang miring lebih sulit daripada belokan siku-siku karena tangan "
+              "harus berhenti lalu berganti arah tanpa patokan garis lurus. Sudut yang "
+              "membulat tetap dihitung berhasil. Awal jalurnya sudah ditarik sebagai contoh.",
+              start_xy=(22, 220), end_xy=(110, 34),
+              deco=[("cactus", 100, 208, 18), ("bird", 60, 44, 18), ("tree", 150, 62, 20)])
     path_page("Jalan Berbelok", "Ikuti jalannya sampai bertemu paus.",
               "M20 22 H80 V60 H36 V100 H112 V138 H50 V176 H120 V212 H178",
               "fish", "whale",
@@ -1467,18 +1478,19 @@ def bagian_9():
                    "Setelah digunting, sebar kartunya di lantai dan minta anak mencari satu per "
                    "satu sesuai nama yang Anda sebut. Kartu ini bisa dipakai berkali-kali "
                    "sesudah halamannya habis. Simpan di amplop supaya tidak hilang.")
-    cut_cards_page("Kartu Buah dan Sayur",
-                   "Gunting di garis putus-putus, lalu kelompokkan mana buah dan mana sayur.",
-                   [("melon", "pisang"), ("apple2", "ceri"), ("carrot", "wortel"),
-                    ("corn", "brokoli"), ("drumstick", "terong"), ("pizza", "cabai")],
+    cut_cards_page("Kartu Makanan",
+                   "Gunting di garis putus-putus, lalu kelompokkan mana yang tumbuh di kebun "
+                   "dan mana yang dimasak di dapur.",
+                   [("apple2", "apel"), ("melon", "semangka"), ("carrot", "wortel"),
+                    ("corn", "jagung"), ("pizza", "piza"), ("cake", "kue")],
                    "Mengelompokkan lebih berguna daripada menghafal nama, jadi terima alasan "
                    "apa pun yang masuk akal bagi anak. Kalau anak mengelompokkan berdasarkan "
                    "warna, itu juga cara berpikir yang sah. Kartunya bisa dipakai lagi saat "
                    "belanja atau menyiapkan makan.")
     cut_cards_page("Kartu Benda di Rumah",
                    "Gunting di garis putus-putus, lalu cari benda aslinya di rumah.",
-                   [("cup", "gelas"), ("hat", "topi"), ("glasses", "sisir"),
-                    ("pot", "sikat gigi"), ("key", "kunci"), ("camera", "kamera")],
+                   [("cup", "gelas anak"), ("hat", "topi"), ("glasses", "kaca mata"),
+                    ("pot", "panci"), ("key", "kunci"), ("camera", "kamera")],
                    "Mencocokkan gambar dengan benda asli di rumah membuat kartu ini terasa "
                    "berguna, bukan sekadar guntingan. Sembunyikan satu kartu lalu minta anak "
                    "menebak benda mana yang hilang kalau ia sudah hafal. Permainan itu melatih "
@@ -1515,7 +1527,7 @@ CSS = """
                          justify-content: flex-start; margin-left: 2mm; }
   .kk-svgtag { font: 600 5px var(--kk-font-ui); fill: #E05580; }
   .kk-mark { position: absolute; inset: -12%; width: 124%; height: 124%; pointer-events: none; }
-  .kk-mark--wide { inset: -6% -2%; width: 104%; height: 112%; }
+  .kk-mark--wide { inset: 0; width: 100%; height: 100%; }
 
   /* menelusuri garis */
   .kk-trow { display: flex; align-items: center; gap: 5mm; position: relative;
@@ -1561,9 +1573,10 @@ CSS = """
   .kk-group { border: 0.5mm solid #DCE0E8; border-radius: 5mm; padding: 3.5mm 4mm;
               background: #FBFCFD; display: flex; align-items: center; justify-content: center;
               min-width: 92mm; position: relative; }
-  .kk-group--half { min-width: 58mm; flex: 1; }
+  .kk-group--half { min-width: 58mm; flex: 1; padding: 3mm; }
   .kk-count-items { display: flex; gap: 2.5mm; flex-wrap: wrap; justify-content: center;
                     max-width: 84mm; }
+  .kk-group--half .kk-count-items { max-width: 52mm; gap: 2mm; }
   .kk-count-row { display: flex; align-items: center; justify-content: space-between; gap: 4mm; }
   .kk-boxrow { display: flex; gap: 3mm; flex: none; }
   .kk-numbox { position: relative; width: 16mm; height: 16mm; border: 0.5mm solid var(--kk-ink);
@@ -1572,7 +1585,7 @@ CSS = """
   .kk-cmnum { width: 20mm; height: 20mm; flex: none; border: 0.6mm solid var(--kk-leaf);
               border-radius: 50%; display: flex; align-items: center; justify-content: center;
               font: 600 20pt/1 var(--kk-font-title); color: var(--kk-leaf); }
-  .kk-more { display: flex; align-items: center; gap: 3mm; }
+  .kk-more { display: flex; align-items: stretch; gap: 3mm; }
   .kk-more__vs { font: 600 10pt/1 var(--kk-font-ui); color: var(--kk-text-muted); flex: none; }
 
   /* cari dan warnai */
@@ -1662,19 +1675,19 @@ CSS = """
                 padding-bottom: 3mm; font: 600 16pt/1 var(--kk-font-title); }
   .kk-seri__i--on { background: #fff; color: #4E9E52; }
   .kk-back__ig { font: 600 11pt/1 var(--kk-font-ui); margin: 6mm 0 0; opacity: .95; }
-  .kk-serigrid { flex: 1; display: grid; grid-template-columns: 1fr 1fr; gap: 5mm;
+  .kk-serigrid { flex: 1; display: grid; grid-template-columns: 1fr 1fr; gap: 4mm;
                  min-height: 0; }
-  .kk-seri__card { border: 0.6mm solid #DCE0E8; border-radius: 5mm; padding: 5mm;
-                   display: flex; flex-direction: column; gap: 1.5mm; }
+  .kk-seri__card { border: 0.6mm solid #DCE0E8; border-radius: 5mm; padding: 4mm 4.5mm;
+                   display: flex; flex-direction: column; gap: 1.2mm; overflow: hidden; }
   .kk-seri__head { display: flex; align-items: baseline; justify-content: space-between; }
   .kk-seri__n { font: 600 9pt/1 var(--kk-font-ui); color: var(--kk-text-muted); }
-  .kk-seri__p { font: 400 8.5pt/1.5 var(--kk-font-ui); color: var(--kk-text-muted);
-                margin: 1mm 0 0; }
+  .kk-seri__p { font: 400 8pt/1.45 var(--kk-font-ui); color: var(--kk-text-muted);
+                margin: 0.5mm 0 0; }
   .kk-seri__card--on { border-color: var(--kk-leaf); background: var(--kk-tint-leaf); }
   .kk-seri__u { font: 600 15pt/1 var(--kk-font-title); color: var(--kk-blueberry); }
   .kk-seri__d { font: 600 9.5pt/1.35 var(--kk-font-ui); color: var(--kk-blueberry); }
-  .kk-seri__l { margin: 1.5mm 0 0; padding-left: 4.5mm;
-                font: 400 8.5pt/1.6 var(--kk-font-ui); color: var(--kk-text); }
+  .kk-seri__l { margin: 1mm 0 0; padding-left: 4mm;
+                font: 400 8pt/1.5 var(--kk-font-ui); color: var(--kk-text); }
 
   @media print {
     body { background: #fff; }

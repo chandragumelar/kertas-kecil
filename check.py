@@ -48,7 +48,13 @@ SKRIP = """
     if (luarKanan > 2) masalah.push(`elemen keluar ${ (luarKanan/mm).toFixed(1) }mm di kanan`);
     if (luarKiri  > 2) masalah.push(`elemen keluar ${ (luarKiri /mm).toFixed(1) }mm di kiri`);
 
-    // 3. isi SVG yang melampaui viewBox
+    // 3. kartu yang isinya terpotong oleh kotaknya sendiri
+    sec.querySelectorAll('.kk-seri__card, .kk-card, .kk-group').forEach(el => {
+      if (el.scrollHeight - el.clientHeight > 2)
+        masalah.push(`isi kartu terpotong ${((el.scrollHeight - el.clientHeight) / mm).toFixed(1)}mm`);
+    });
+
+    // 4. isi SVG yang melampaui viewBox
     sec.querySelectorAll('svg[viewBox]').forEach(svg => {
       if (svg.closest('.kk-sprite')) return;
       const vb = svg.viewBox.baseVal;
