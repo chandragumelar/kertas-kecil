@@ -1734,7 +1734,6 @@ def main():
     for f in (bagian_1, bagian_2, bagian_3, bagian_4, bagian_5,
               bagian_6, bagian_7, bagian_8, bagian_9):
         f()
-    bundel_lainnya()
     sampul_belakang()
 
     daftar_isi()
