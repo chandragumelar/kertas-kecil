@@ -321,13 +321,19 @@ NUM = [0]
 BADGE_CLS = {"Lanjut": "kk-badge--lanjut", "Tantangan": "kk-badge--tantangan"}
 
 
+def dua_kalimat(t):
+    """Catatan orang tua dipotong sampai dua kalimat saja."""
+    bag = re.findall(r"[^.]+\.", t.strip())
+    return "".join(bag[:2]).strip() if bag else t.strip()
+
+
 def page(title, instruction, body, note, skill, icon, badge="Mulai", icon_cls=""):
     NUM[0] += 1
+    note = dua_kalimat(note)
     PAGES.append(f"""<section class="kk-page">
   <header class="kk-header">
     <div class="kk-skill-icon {icon_cls}">{pico(icon)}</div>
-    <div class="kk-header__top"><h1 class="kk-title">{title}</h1>
-      <span class="kk-badge {BADGE_CLS.get(badge, '')}">{badge}</span></div>
+    <div class="kk-header__top"><h1 class="kk-title">{title}</h1></div>
   </header>
   <div class="kk-content">
     <p class="kk-instruction">{instruction}</p>
@@ -360,13 +366,11 @@ def divider(no, judul):
     gambar_penuh(f"bagian_{no}.jpeg")
 
 
-LABEL_CONTOH = '<span class="kk-contoh">contoh</span>'
+LABEL_CONTOH = ""
 
 
 def tag_side(pertama):
-    """Label contoh dengan lebar tetap supaya baris lain tidak bergeser."""
-    isi = LABEL_CONTOH if pertama else ""
-    return f'<span class="kk-contoh-tag--side">{isi}</span>'
+    return ""
 
 
 # ============================================================ menelusuri garis
@@ -396,7 +400,7 @@ def trace_page(title, instr, d, note, deco, start, w=58, h=44, reps=3, badge="Mu
     for i in range(3):
         ikon = ic(deco[i % len(deco)], 20)
         garis = stroke_row(d, start, w, h, reps, ["grape", "sky", "orange"][i], contoh=(i == 0))
-        tanda = f'<span class="kk-contoh-tag">{LABEL_CONTOH}</span>' if i == 0 else ""
+        tanda = ""
         sisi = f"{ikon}{garis}" if i % 2 == 0 else f"{garis}{ikon}"
         baris.append(f'<div class="kk-trow">{tanda}{sisi}</div>')
     page(title, instr, "".join(baris), note, "Motorik halus", "scribble-loop", badge)
@@ -459,7 +463,7 @@ def glyph_row(ch, reps, color):
 def glyph_page(title, instr, chars, note, skill, deco, badge="Lanjut", reps=4):
     baris = []
     for i, ch in enumerate(chars):
-        tanda = f'<span class="kk-contoh-tag">{LABEL_CONTOH}</span>' if i == 0 else ""
+        tanda = ""
         baris.append(f'<div class="kk-trow">{tanda}'
                      f'{glyph_row(ch, reps, ["sky", "berry", "grape"][i % 3])}'
                      f'{ic(deco[i % len(deco)], 17)}</div>')
@@ -468,14 +472,27 @@ def glyph_page(title, instr, chars, note, skill, deco, badge="Lanjut", reps=4):
 
 
 def _acak_selain_pertama(n):
-    """Urutan kanan: baris pertama tetap sejajar (contoh), sisanya diacak
+    """Urutan kolom kanan. Jawaban baris pertama sengaja ditaruh di baris
+    kedua supaya garis contohnya miring, bukan mendatar. Sisanya diacak
     sampai tidak ada yang kebetulan sejajar dengan kirinya."""
-    sisa = list(range(1, n))
-    for _ in range(200):
-        random.shuffle(sisa)
-        if all(i != v for i, v in zip(range(1, n), sisa)):
-            break
-    return [0] + sisa
+    for _ in range(400):
+        urut = list(range(n))
+        random.shuffle(urut)
+        if urut[1] == 0 and all(i != v for i, v in enumerate(urut)):
+            return urut
+    urut = list(range(1, n)) + [0]
+    urut[0], urut[1] = urut[1], 0
+    return urut
+
+
+def garis_contoh(n, dari=0, ke=1, x1=336, x2=666):
+    """Garis contoh utuh yang ditarik miring dari titik kiri baris `dari`
+    ke titik kanan baris `ke`. Digambar solid, bukan putus-putus."""
+    y1 = (dari + 0.5) / n * 1000
+    y2 = (ke + 0.5) / n * 1000
+    return (f'<svg class="kk-exline" viewBox="0 0 1000 1000" preserveAspectRatio="none">'
+            f'<path d="M{x1} {y1:.0f} L{x2} {y2:.0f}" fill="none" stroke="{C["blueberry"]}" '
+            f'stroke-width="2" vector-effect="non-scaling-stroke" stroke-linecap="round"/></svg>')
 
 
 # ============================================================ mencocokkan
@@ -488,15 +505,11 @@ def match_page(title, instr, pairs, note, skill="Cocokkan", badge="Mulai"):
     for i, k in enumerate(kiri):
         rows.append(f'<div class="kk-mrow"><div class="kk-mcell">{ic(k, 24)}'
                     f'<span class="kk-dot"></span></div>'
-                    f'<div class="kk-mgap">'
-                    + (f'<svg class="kk-mline" viewBox="0 0 100 20" preserveAspectRatio="none">'
-                       f'<path d="M2 10 H98" fill="none" stroke="{C["blueberry"]}" '
-                       f'stroke-width="1.6" stroke-dasharray="5 4"/></svg>{LABEL_CONTOH}'
-                       if i == 0 else "")
-                    + f'</div>'
+                    f'<div class="kk-mgap"></div>'
                     f'<div class="kk-mcell kk-mcell--r"><span class="kk-dot"></span>'
                     f'{ic(kanan[urut[i]], 24)}</div></div>')
-    page(title, instr, "".join(rows), note, skill, "puzzle-piece", badge, "kk-skill-icon--shape")
+    body = f'<div class="kk-mwrap">{"".join(rows)}{garis_contoh(len(kiri))}</div>'
+    page(title, instr, body, note, skill, "puzzle-piece", badge, "kk-skill-icon--shape")
 
 
 def choose_page(title, instr, rows, note, skill, icon, badge="Lanjut", tandai="lingkari"):
@@ -534,8 +547,9 @@ def size_page(title, instr, rows, note, cari="kecil"):
         for u in ukuran:
             mark = ""
             if i == 0 and u == target:
-                mark = (f'<svg class="kk-mark" viewBox="0 0 100 100"><ellipse cx="50" cy="50" '
-                        f'rx="46" ry="44" fill="none" stroke="{C["berry"]}" stroke-width="5" '
+                mark = (f'<svg class="kk-mark kk-mark--big" viewBox="0 0 100 100">'
+                        f'<ellipse cx="50" cy="50" rx="46" ry="44" fill="none" '
+                        f'stroke="{C["berry"]}" stroke-width="4" '
                         f'transform="rotate(-5 50 50)"/></svg>')
             sel.append(f'<span class="kk-choose__o">{ic(key, u)}{mark}</span>')
         out.append(f'<div class="kk-choose"><div class="kk-choose__row kk-choose__row--wide">'
@@ -551,20 +565,16 @@ def _pola_halaman(title, instr, baris, note, badge="Lanjut"):
     urut = _acak_selain_pertama(len(baris))
     rows = []
     for i, (sel, _) in enumerate(baris):
-        if i == 0:
-            kotak = f'<span class="kk-pcell kk-pcell--q kk-pcell--isi">{jawab[0]}</span>'
-            garis = (f'<svg class="kk-mline" viewBox="0 0 100 20" preserveAspectRatio="none">'
-                     f'<path d="M2 10 H98" fill="none" stroke="{C["blueberry"]}" '
-                     f'stroke-width="1.6" stroke-dasharray="5 4"/></svg>{LABEL_CONTOH}')
-        else:
-            kotak = '<span class="kk-pcell kk-pcell--q">?</span>'
-            garis = ""
+        kotak = (f'<span class="kk-pcell kk-pcell--q kk-pcell--isi">{jawab[0]}</span>'
+                 if i == 0 else '<span class="kk-pcell kk-pcell--q">?</span>')
+        sel = sel.replace('<span class="kk-pcell kk-pcell--q">?</span>', kotak)
         rows.append(f'<div class="kk-prow">'
                     f'<div class="kk-pseq">{sel}<span class="kk-dot"></span></div>'
-                    f'<div class="kk-mgap">{garis}</div>'
+                    f'<div class="kk-mgap"></div>'
                     f'<div class="kk-mcell kk-mcell--r"><span class="kk-dot"></span>'
                     f'<span class="kk-pans">{jawab[urut[i]]}</span></div></div>')
-    page(title, instr, "".join(rows), note, "Pola", "flow-arrow", badge, "kk-skill-icon--shape")
+    body = f'<div class="kk-mwrap">{"".join(rows)}{garis_contoh(len(baris), x1=530)}</div>'
+    page(title, instr, body, note, "Pola", "flow-arrow", badge, "kk-skill-icon--shape")
 
 
 def _sel(isi, kosong=False, polos=False):
@@ -654,18 +664,16 @@ def count_match_page(title, instr, rows, note, badge="Tantangan"):
     urut = _acak_selain_pertama(len(rows))
     out = []
     for i, (key, n) in enumerate(rows):
-        items = "".join(ic(key, 15) for _ in range(n))
+        items = "".join(ic(key, 13) for _ in range(n))
         angka = rows[urut[i]][1]
-        garis = (f'<svg class="kk-mline" viewBox="0 0 100 20" preserveAspectRatio="none">'
-                 f'<path d="M2 10 H98" fill="none" stroke="{C["blueberry"]}" stroke-width="1.6" '
-                 f'stroke-dasharray="5 4"/></svg>{LABEL_CONTOH}' if i == 0 else "")
         out.append(f'<div class="kk-mrow"><div class="kk-mcell"><div class="kk-group">'
                    f'<div class="kk-count-items">{items}</div></div>'
                    f'<span class="kk-dot"></span></div>'
-                   f'<div class="kk-mgap">{garis}</div>'
+                   f'<div class="kk-mgap"></div>'
                    f'<div class="kk-mcell kk-mcell--r"><span class="kk-dot"></span>'
                    f'<span class="kk-cmnum">{angka}</span></div></div>')
-    page(title, instr, "".join(out), note, "Berhitung", "number-circle-three", badge,
+    body = f'<div class="kk-mwrap">{"".join(out)}{garis_contoh(len(rows), x1=594)}</div>'
+    page(title, instr, body, note, "Berhitung", "number-circle-three", badge,
          "kk-skill-icon--count")
 
 
@@ -726,7 +734,6 @@ def path_page(title, instr, d, awal, akhir, note, start_xy, end_xy, deco=(), bad
            f'stroke-linecap="round" stroke-dasharray="{contoh_len} 4000"/>'
            + "".join(use(k, x, y, s) for k, x, y, s in deco)
            + use(awal, *start_xy, 24) + use(akhir, *end_xy, 24)
-           + f'<text x="{start_xy[0] + 16}" y="{start_xy[1] - 15}" class="kk-svgtag">contoh</text>'
            + "</svg>")
     page(title, instr, f'<div class="kk-center">{art}</div>', note, "Motorik halus", "path", badge)
 
@@ -767,13 +774,13 @@ def _garis_lepas():
 
 def cut_page(title, instr, body, note, badge="Tantangan"):
     NUM[0] += 1
+    note = dua_kalimat(note)
     PAGES.append(f"""<section class="kk-page kk-cutpage">
   {_garis_lepas()}
   <div class="kk-cutpage__in">
     <header class="kk-header">
       <div class="kk-skill-icon kk-skill-icon--cut">{pico("scissors")}</div>
-      <div class="kk-header__top"><h1 class="kk-title">{title}</h1>
-        <span class="kk-badge {BADGE_CLS.get(badge, '')}">{badge}</span></div>
+      <div class="kk-header__top"><h1 class="kk-title">{title}</h1></div>
     </header>
     <div class="kk-content">
       <p class="kk-instruction">{instr}</p>
@@ -828,6 +835,36 @@ def cut_shape_page(title, instr, shapes, note, badge="Tantangan"):
                    f'stroke-width="3" stroke-dasharray="8 6" stroke-linejoin="round"/></svg>'
                    f'<span class="kk-cutcell__ic">{ic(key, 20)}</span></div>')
     cut_page(title, instr, f'<div class="kk-cutgrid2">{"".join(sel)}</div>', note, badge)
+
+
+def cut_fringe_page(title, instr, baris, note, badge="Mulai"):
+    """Rumbai: potongan pendek dari tepi ke dalam, tidak sampai putus.
+    Satu buka tutup gunting per potongan, jadi cocok untuk pemula."""
+    sel = []
+    for key, warna in baris:
+        garis = "".join(
+            f'<path d="M{18 + i * 22} 0 V34" fill="none" stroke="{C["berry"]}" '
+            f'stroke-width="2.6" stroke-dasharray="6 5" stroke-linecap="round"/>'
+            for i in range(5))
+        sel.append(f'<div class="kk-fringe">{ic(key, 22)}'
+                   f'<svg class="kk-fringesvg" viewBox="0 0 140 56" preserveAspectRatio="none">'
+                   f'<rect x="2" y="1" width="136" height="54" rx="4" fill="{cr(warna)}" '
+                   f'fill-opacity=".35" stroke="{C["blueberry"]}" stroke-width="1.4"/>'
+                   f'{garis}</svg></div>')
+    cut_page(title, instr, "".join(sel), note, badge)
+
+
+def cut_half_page(title, instr, baris, note, badge="Lanjut"):
+    """Membelah satu bentuk besar jadi dua lewat satu garis lurus."""
+    sel = []
+    for key, warna in baris:
+        sel.append(f'<div class="kk-fringe">{ic(key, 22)}'
+                   f'<svg class="kk-fringesvg" viewBox="0 0 140 56" preserveAspectRatio="none">'
+                   f'<rect x="2" y="2" width="136" height="52" rx="10" fill="{cr(warna)}" '
+                   f'fill-opacity=".35" stroke="{C["blueberry"]}" stroke-width="1.4"/>'
+                   f'<path d="M70 0 V56" fill="none" stroke="{C["berry"]}" stroke-width="2.6" '
+                   f'stroke-dasharray="6 5" stroke-linecap="round"/></svg></div>')
+    cut_page(title, instr, "".join(sel), note, badge)
 
 
 def cut_cards_page(title, instr, cards, note, badge="Tantangan"):
@@ -1119,7 +1156,7 @@ def bagian_2():
                "Angka 8 adalah yang paling sulit di halaman ini karena jalurnya menyilang di "
                "tengah. Boleh dipecah dulu jadi dua lingkaran yang ditumpuk. Kalau anak lelah "
                "setelah dua baris, berhenti saja dan lanjutkan besok.",
-               "Angka", ("watermelon", "watermelon", "pizza"))
+               "Angka", ("melon", "donut", "pizza"))
     glyph_page("Telusuri Huruf a b c", "Telusuri hurufnya. Sebut bunyinya sambil menarik.",
                ["a", "b", "c"],
                "Huruf kecil lebih sering ditemui anak dalam buku cerita daripada huruf besar, "
@@ -1283,7 +1320,7 @@ def bagian_5():
 
 def bagian_6():
     divider(6, "Warna")
-    hunt_page("Cari Huruf n, b, dan u", "Warnai kotak yang hurufnya sama dengan contoh di atas.",
+    hunt_page("Cari Huruf n, b, dan u", "Warnai kotak yang hurufnya sama dengan yang di atas.",
               [("n", "sky"), ("b", "sunny"), ("u", "berry")],
               [[("n", "sky"), ("b", None), ("l", None)],
                [("u", None), ("g", None), ("u", None)],
@@ -1293,8 +1330,8 @@ def bagian_6():
               "mata mencocokkan bentuk. Kotak pertama sudah diwarnai sebagai contoh. Warna "
               "yang keluar kotak sama sekali bukan masalah, justru itu tanda anak menekan "
               "krayonnya dengan berani.")
-    hunt_page("Tetesan Hujan k, e, v", "Warnai tetesan sesuai warna contoh di baris atas.",
-              [("k", "sky"), ("e", "forest"), ("v", "orange")],
+    hunt_page("Tetesan Hujan k, e, v", "Warnai tetesan sesuai warna di baris atas.",
+              [("k", "sky"), ("e", "leaf"), ("v", "orange")],
               [[("k", None), ("e", None), ("v", None)],
                [("e", None), ("k", None), ("e", None)],
                [("v", None), ("v", None), ("k", None)]],
@@ -1304,31 +1341,31 @@ def bagian_6():
               "tengah, itu tetap dihitung selesai.",
               shape="drop", badge="Lanjut")
     warnai_page("warnai_1.jpeg", "Warnai Langit",
-                "Warnai matahari, awan, dan balonnya.",
+                "Warnai pesawatnya.",
                 "Sebutkan warnanya sambil anak mewarnai, karena kosakata warna tumbuh dari "
                 "percakapan bukan dari hafalan. Kalau anak mewarnai matahari jadi biru, "
                 "biarkan saja dan tanyakan ceritanya. Memaksa warna yang benar di usia ini "
                 "hanya membuat anak berhenti mencoba.")
     warnai_page("warnai_2.jpeg", "Warnai Bawah Laut",
-                "Warnai ikan, bintang laut, dan rumput lautnya.",
+                "Warnai guritanya.",
                 "Tanyakan ikan mana yang paling besar dan mana yang paling kecil sebelum mulai "
                 "mewarnai, jadi satu halaman dipakai untuk dua hal. Bidang besar diwarnai lebih "
                 "dulu, bagian kecil belakangan. Anak tiga tahun biasanya bertahan lima sampai "
                 "sepuluh menit di halaman mewarnai.")
     warnai_page("warnai_3.jpeg", "Warnai Kebun",
-                "Warnai bunga, daun, dan kupu-kupunya.",
+                "Warnai bunga mataharinya.",
                 "Kelopak bunga adalah bentuk kecil berulang, jadi halaman ini melatih tangan "
                 "berhenti di tepi. Tidak perlu semua kelopak diwarnai, satu atau dua sudah "
                 "cukup untuk sekali duduk. Kalau anak ingin menambah gambar sendiri di ruang "
                 "kosongnya, biarkan.")
     warnai_page("warnai_4.jpeg", "Warnai Buah",
-                "Warnai buah-buahannya.",
+                "Warnai pisangnya.",
                 "Sebelum mewarnai, tanyakan buah apa saja yang pernah dimakan anak minggu ini "
                 "supaya gambar di kertas terhubung dengan pengalaman nyatanya. Warna asli buah "
                 "boleh jadi bahan obrolan, tapi jangan dijadikan aturan. Halaman ini juga bisa "
                 "diulang lain hari dengan warna berbeda kalau dicetak dua kali.")
     warnai_page("warnai_5.jpeg", "Warnai Hewan",
-                "Warnai hewan-hewannya.",
+                "Warnai kapibaranya.",
                 "Bidang tubuh hewan cukup besar untuk anak yang belum bisa mengontrol tepi, "
                 "jadi halaman ini biasanya terasa lebih mudah daripada halaman kebun. Tirukan "
                 "suara hewannya sambil mewarnai supaya kegiatannya tidak terasa seperti tugas. "
@@ -1399,12 +1436,16 @@ def bagian_8():
         "yang berganti-ganti.",
         "Sosial emosional", "smiley", "Mulai", "kk-skill-icon--shape")
     gambar_penuh_aktivitas(
-        "perasaan_2.jpeg", "Gambar Wajahnya",
+        "perasaan_2a.jpeg", "Gambar Wajahnya",
         "Gambar mata dan mulutnya sesuai perasaan yang tertulis di bawah lingkaran.",
         "Dua titik dan satu garis lengkung sudah cukup untuk menggambar wajah, jadi jangan "
-        "menuntut lebih. Tujuannya bercerita, bukan menggambar bagus. Kalau anak bingung mulai "
-        "dari mana, buka lagi halaman sebelumnya sebentar lalu tutup kembali supaya ia "
-        "menggambar dari ingatan.",
+        "menuntut lebih. Tujuannya bercerita, bukan menggambar bagus.",
+        "Sosial emosional", "smiley-wink", "Lanjut", "kk-skill-icon--shape")
+    gambar_penuh_aktivitas(
+        "perasaan_2b.jpeg", "Gambar Wajahnya Lagi",
+        "Gambar mata dan mulutnya sesuai perasaan yang tertulis di bawah lingkaran.",
+        "Kalau anak bingung mulai dari mana, buka lagi halaman perasaan sebentar lalu tutup "
+        "kembali supaya ia menggambar dari ingatan. Satu lingkaran per hari sudah cukup.",
         "Sosial emosional", "smiley-wink", "Lanjut", "kk-skill-icon--shape")
     gambar_penuh_aktivitas(
         "perasaan_3.jpeg", "Kapan Rasanya Begitu",
@@ -1427,74 +1468,49 @@ def bagian_8():
 def bagian_9():
     divider(9, "Gunting")
     cut_lines_page("Gunting Sekali Potong", "Potong sekali di setiap garis merah.",
-                   [("pendek", "cake"), ("pendek", "melon"), ("pendek", "donut"),
-                    ("pendek", "cake"), ("pendek", "watermelon")],
+                   [("pendek", "cake"), ("pendek", "melon"), ("pendek", "donut")],
                    "Sekali buka tutup gunting sudah menyelesaikan satu garis, jadi ini titik "
-                   "mulai yang paling mudah. Tunjukkan cara memegang gunting dengan jempol di "
-                   "atas sekali saja, lalu biarkan anak mencoba. Dampingi terus selama anak "
-                   "memegang gunting.")
+                   "mulai yang paling mudah. Dampingi terus selama anak memegang gunting.")
+    cut_fringe_page("Gunting Rumbai", "Gunting pendek dari tepi atas ke bawah. Jangan sampai "
+                    "kertasnya putus jadi dua.",
+                    [("cat", "sunny"), ("dog", "sky"), ("rooster", "leaf")],
+                    "Rumbai melatih anak berhenti sebelum ujung, dan menahan gunting justru "
+                    "lebih sulit daripada memotong terus. Hasilnya bisa dipakai jadi rambut "
+                    "atau rumput di gambar lain.")
+    cut_half_page("Gunting Jadi Dua", "Gunting di garis merah sampai kertasnya jadi dua.",
+                  [("apple2", "berry"), ("bird", "grape"), ("fish", "orange")],
+                  "Memotong tembus dari tepi ke tepi menuntut tangan satunya ikut memutar "
+                  "kertas. Potongan yang keluar garis tetap dihitung berhasil.")
     cut_lines_page("Gunting Garis Lurus", "Gunting mengikuti garis sampai ke ujung.",
-                   [("lurus", "pig"), ("lurus", "rooster"), ("lurus", "chipmunk"), ("lurus", "rabbit")],
+                   [("lurus", "pig"), ("lurus", "rooster"), ("lurus", "rabbit")],
                    "Bagian tersulit bukan tangan yang memegang gunting, melainkan tangan lain "
-                   "yang harus memutar kertas. Perlihatkan gerakannya pelan-pelan sekali lalu "
-                   "biarkan anak menemukan caranya sendiri. Potongan yang berbelok keluar garis "
-                   "tetap dihitung berhasil.")
+                   "yang harus memutar kertas. Potongan yang berbelok keluar garis tetap "
+                   "dihitung berhasil.")
     cut_lines_page("Gunting Garis Gelombang", "Gunting mengikuti ombaknya.",
-                   [("gelombang", "whale"), ("gelombang", "octopus"),
-                    ("gelombang", "shrimp"), ("gelombang", "crab")],
+                   [("gelombang", "whale"), ("gelombang", "octopus"), ("gelombang", "crab")],
                    "Kertasnya yang diputar, bukan guntingnya yang dimiringkan, dan ini biasanya "
-                   "baru dikuasai di usia empat tahun. Kalau anak belum bisa, gunting lurus "
-                   "melewati ombaknya juga tidak apa-apa. Berhenti sebelum anak frustrasi.")
+                   "baru dikuasai di usia empat tahun. Berhenti sebelum anak frustrasi.")
     cut_lines_page("Gunting Zigzag", "Gunting mengikuti gigi gergajinya.",
-                   [("zigzag", "dinosaur"), ("zigzag", "snake"), ("zigzag", "chameleon"),
-                    ("zigzag", "boar")],
-                   "Berhenti di setiap sudut, putar kertas, lalu potong lagi. Ini halaman "
-                   "tersulit di bagian gunting dan banyak anak tiga tahun belum siap. Boleh "
-                   "dikerjakan bersama dengan Anda memegang kertasnya dan anak menggunting.")
-    cut_shape_page("Gunting Bentuk Dasar", "Gunting mengikuti garis putus-putus.",
-                   [("M50 6 L94 50 L50 94 L6 50 Z", "butterfly", "juice"),
-                    ("M6 22 H94 V78 H6 Z", "apple2", "sunny"),
-                    ("M50 8 A42 42 0 1 1 49.5 8 Z", "donut", "sky"),
-                    ("M50 8 L92 90 L8 90 Z", "tree", "forest")],
-                   "Bentuk besar dengan sedikit sudut dikerjakan lebih dulu. Lingkaran justru "
-                   "yang paling sulit karena tidak punya titik berhenti alami. Hasil guntingan "
-                   "bisa ditempel di kertas kosong atau dijadikan hiasan supaya usahanya terasa "
-                   "ada gunanya.")
-    cut_shape_page("Gunting Bentuk Berlekuk", "Gunting mengikuti garis putus-putus.",
-                   [("M50 88 C18 66 8 44 20 30 C32 18 46 24 50 34 C54 24 68 18 80 30 "
-                     "C92 44 82 66 50 88 Z", "flower", "berry"),
-                    ("M50 6 L62 38 L96 38 L68 58 L79 90 L50 70 L21 90 L32 58 L4 38 L38 38 Z",
-                     "owl", "sunny"),
-                    ("M20 62 A18 18 0 0 1 24 30 A24 24 0 0 1 64 24 A20 20 0 0 1 92 44 "
-                     "A16 16 0 0 1 90 62 Z", "bird", "sky"),
-                    ("M50 10 A40 40 0 1 1 49.6 10 Z", "melon", "forest")],
-                   "Bentuk berlekuk butuh gunting dibuka setengah saja setiap potongan, bukan "
-                   "dibuka penuh. Kalau hasilnya sobek, tempel saja di kertas lain dan lanjutkan. "
-                   "Yang dilatih prosesnya, bukan bentuk akhirnya.", badge="Tantangan")
+                   [("zigzag", "dinosaur"), ("zigzag", "snake"), ("zigzag", "chameleon")],
+                   "Berhenti di setiap sudut, putar kertas, lalu potong lagi. Boleh dikerjakan "
+                   "bersama dengan Anda memegang kertasnya dan anak menggunting.")
     cut_cards_page("Gunting Jadi Kartu Hewan",
                    "Gunting di garis putus-putus, lalu pakai kartunya untuk main tebak-tebakan.",
-                   [("cat", "kucing"), ("dog", "anjing"), ("pig", "babi"),
-                    ("monkey", "monyet"), ("rabbit", "kelinci"), ("rooster", "ayam")],
+                   [("cat", "kucing"), ("dog", "anjing"), ("rooster", "ayam")],
                    "Setelah digunting, sebar kartunya di lantai dan minta anak mencari satu per "
-                   "satu sesuai nama yang Anda sebut. Kartu ini bisa dipakai berkali-kali "
-                   "sesudah halamannya habis. Simpan di amplop supaya tidak hilang.")
+                   "satu sesuai nama yang Anda sebut. Simpan di amplop supaya tidak hilang.")
     cut_cards_page("Kartu Makanan",
                    "Gunting di garis putus-putus, lalu kelompokkan mana yang tumbuh di kebun "
                    "dan mana yang dimasak di dapur.",
-                   [("apple2", "apel"), ("melon", "semangka"), ("carrot", "wortel"),
-                    ("corn", "jagung"), ("pizza", "piza"), ("cake", "kue")],
+                   [("apple2", "apel"), ("carrot", "wortel"), ("pizza", "piza")],
                    "Mengelompokkan lebih berguna daripada menghafal nama, jadi terima alasan "
-                   "apa pun yang masuk akal bagi anak. Kalau anak mengelompokkan berdasarkan "
-                   "warna, itu juga cara berpikir yang sah. Kartunya bisa dipakai lagi saat "
-                   "belanja atau menyiapkan makan.")
+                   "apa pun yang masuk akal bagi anak. Kartunya bisa dipakai lagi saat belanja.")
     cut_cards_page("Kartu Benda di Rumah",
                    "Gunting di garis putus-putus, lalu cari benda aslinya di rumah.",
-                   [("cup", "gelas anak"), ("hat", "topi"), ("glasses", "kaca mata"),
-                    ("pot", "panci"), ("key", "kunci"), ("camera", "kamera")],
-                   "Mencocokkan gambar dengan benda asli di rumah membuat kartu ini terasa "
-                   "berguna, bukan sekadar guntingan. Sembunyikan satu kartu lalu minta anak "
-                   "menebak benda mana yang hilang kalau ia sudah hafal. Permainan itu melatih "
-                   "ingatan sekaligus mengulang nama bendanya.")
+                   [("cup", "gelas anak"), ("hat", "topi"), ("key", "kunci")],
+                   "Mencocokkan gambar dengan benda asli membuat kartu ini terasa berguna, "
+                   "bukan sekadar guntingan. Sembunyikan satu kartu lalu minta anak menebak "
+                   "benda mana yang hilang.")
 
 
 # ============================================================ gaya tambahan
@@ -1520,14 +1536,29 @@ CSS = """
   .kk-parent-note__icon .kk-pico { width: 6mm; height: 6mm; }
   .kk-parent-note span:last-child { font-size: 9.5pt; line-height: 1.5; }
 
-  .kk-contoh { font: 600 8pt/1 var(--kk-font-ui); color: var(--kk-berry);
-               background: var(--kk-tint-berry); border-radius: 99px; padding: 1.4mm 3mm; }
-  .kk-contoh-tag { position: absolute; top: -1mm; left: 0; }
-  .kk-contoh-tag--side { flex: 0 0 20mm; display: flex; align-items: center;
-                         justify-content: flex-start; margin-left: 2mm; }
-  .kk-svgtag { font: 600 5px var(--kk-font-ui); fill: #E05580; }
   .kk-mark { position: absolute; inset: -12%; width: 124%; height: 124%; pointer-events: none; }
   .kk-mark--wide { inset: 0; width: 100%; height: 100%; }
+  .kk-mark--big { inset: -26%; width: 152%; height: 152%; }
+
+  /* judul dikecilkan supaya ruang kerja anak tidak termakan header */
+  .kk-title { font-size: 19pt; }
+  .kk-header { margin-bottom: 3mm; }
+
+  /* garis contoh yang ditarik miring melintasi dua baris, solid */
+  .kk-mwrap { flex: 1; display: flex; flex-direction: column; position: relative; min-height: 0; }
+  .kk-mwrap > .kk-mrow, .kk-mwrap > .kk-prow { flex: 1; min-height: 0; }
+  .kk-exline { position: absolute; inset: 0; width: 100%; height: 100%; pointer-events: none; }
+  .kk-mrow > .kk-mcell { flex: 0 0 62mm; justify-content: flex-end; }
+  .kk-mrow > .kk-mcell--r { justify-content: flex-start; }
+  .kk-prow > .kk-pseq { flex: 0 0 62mm; justify-content: flex-end; }
+  .kk-prow > .kk-mcell--r { flex: 0 0 62mm; justify-content: flex-start; }
+  .kk-mcell .kk-count-items { flex-wrap: wrap; justify-content: flex-end; }
+
+  /* gunting rumbai dan belah dua */
+  .kk-prow .kk-pcell { width: 17mm; height: 17mm; }
+  .kk-prow .kk-pseq { gap: 1.6mm; }
+  .kk-fringe { display: flex; align-items: center; gap: 6mm; }
+  .kk-fringesvg { flex: 1; height: 24mm; min-width: 0; }
 
   /* menelusuri garis */
   .kk-trow { display: flex; align-items: center; gap: 5mm; position: relative;
