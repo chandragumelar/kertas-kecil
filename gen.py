@@ -808,13 +808,13 @@ def strip_gunting(kind, key):
                  f'<path d="M2 10 H158" fill="none" stroke="{C["berry"]}" stroke-width="3.6" '
                  f'stroke-dasharray="8 6" stroke-linecap="round"/></svg>')
     elif kind == "gelombang":
-        garis = ('<svg class="kk-cutsvg" viewBox="0 0 160 22" preserveAspectRatio="none">'
-                 f'<path d="M2 11 Q22 1 42 11 Q62 21 82 11 Q102 1 122 11 Q142 21 158 11" '
+        garis = ('<svg class="kk-cutsvg kk-cutsvg--big" viewBox="0 0 160 60" preserveAspectRatio="none">'
+                 f'<path d="M4 30 C17 -2 37 -2 50 30 S83 62 96 30 S129 -2 142 30 Q150 46 156 44" '
                  f'fill="none" stroke="{C["berry"]}" stroke-width="3.6" stroke-dasharray="8 6" '
                  f'stroke-linecap="round"/></svg>')
     else:
-        garis = ('<svg class="kk-cutsvg" viewBox="0 0 160 22" preserveAspectRatio="none">'
-                 f'<path d="M2 18 L22 4 L42 18 L62 4 L82 18 L102 4 L122 18 L142 4 L158 18" '
+        garis = ('<svg class="kk-cutsvg kk-cutsvg--big" viewBox="0 0 160 60" preserveAspectRatio="none">'
+                 f'<path d="M4 54 L30 6 L56 54 L82 6 L108 54 L134 6 L156 46" '
                  f'fill="none" stroke="{C["berry"]}" stroke-width="3.6" stroke-dasharray="8 6" '
                  f'stroke-linecap="round"/></svg>')
     tangan = f'<span class="kk-cut-ico">{pico("scissors")}</span>'
@@ -1666,6 +1666,7 @@ CSS = """
   .kk-cut-ico .kk-pico { width: 8mm; height: 8mm; }
   .kk-cutsvg { flex: 1; height: 13mm; min-width: 0; }
   .kk-cutsvg--short { flex: 0 0 42mm; }
+  .kk-cutsvg--big { height: 32mm; }
   .kk-cutfill { flex: 1; }
   .kk-cutgrid2 { flex: 1; display: grid; grid-template-columns: 1fr 1fr; gap: 4mm;
                  min-height: 0; }
