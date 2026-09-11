@@ -12,7 +12,8 @@ from pathlib import Path
 
 ROOT = Path(__file__).parent
 SVG_DIR = ROOT / "svg"
-ASSET_DIR = ROOT / "assets"
+ASSET_NAME = "assets-berry"
+ASSET_DIR = ROOT / ASSET_NAME
 random.seed(11)
 
 # ============================================================ aset SVG
@@ -357,7 +358,7 @@ def raw_page(html, hitung=True):
 
 def gambar_penuh(nama, kelas=""):
     raw_page(f'<section class="kk-page kk-fullpage {kelas}">'
-             f'<img src="assets/{nama}" class="kk-fullpage__img" alt=""></section>',
+             f'<img src="{ASSET_NAME}/{nama}" class="kk-fullpage__img" alt=""></section>',
              hitung=False)
 
 
@@ -1025,28 +1026,18 @@ def bundel_lainnya():
 
 
 def sampul_belakang():
-    tinggi = {"2": 14, "3": 22, "4": 30, "5": 38}
-    seri = "".join(
-        f'<span class="kk-seri__i {"kk-seri__i--on" if u == "3" else ""}" '
-        f'style="height:{tinggi[u]}mm">{u}</span>' for u in ("2", "3", "4", "5"))
     raw_page(f"""<section class="kk-page kk-back">
-  <div class="kk-back__in">
-    <div class="kk-logo kk-logo--inv"><span class="kk-logo__mark"></span>
-      <span class="kk-logo__name">Kertas Kecil</span></div>
-    <p class="kk-back__lead">Buku Aktivitas Anak Usia 3 Tahun</p>
-    <p class="kk-back__p">Kertas Kecil adalah buku aktivitas untuk anak usia tiga tahun yang
-      dikerjakan cukup dengan krayon dan gunting. Tidak perlu stiker, lem, atau alat
-      tambahan apa pun.</p>
-    <p class="kk-back__p">Isinya sembilan bagian: menarik garis dan coretan, menelusuri angka
-      dan huruf, mencocokkan dan membedakan, pola, berhitung sampai sepuluh, mewarnai,
-      mengikuti jalan berliku, mengenali perasaan, dan menggunting. Setiap halaman punya satu
-      contoh yang sudah dikerjakan, jadi orang tua tidak perlu menebak maksud perintahnya.</p>
-    <p class="kk-back__p">Di setiap halaman ada catatan untuk orang tua tentang keterampilan
-      yang sedang dilatih dan apa yang wajar terjadi di usia ini. Lembar menggunting ditaruh
-      di bagian belakang dan bisa dilepas satu per satu.</p>
-    <div class="kk-seri"><span class="kk-seri__t">tersedia untuk usia 2 sampai 5 tahun</span>
-      <div class="kk-seri__row">{seri}</div>
-      <p class="kk-back__ig">@kertaskecil.project</p></div>
+  <img src="{ASSET_NAME}/cover_belakang.jpeg" class="kk-back__img" alt="">
+  <div class="kk-back__badge"><b>Ages 3+</b><span>crayons<br>and scissors</span></div>
+  <div class="kk-back__txt">
+    <p>Berry turned three and made this book with Mami and Papi.</p>
+    <p>She wanted her friends to have one too.</p>
+    <p>Color, cut, go outside the lines, and sit together while you do it.</p>
+    <p class="kk-back__warn">Scissors with a grown-up nearby.</p>
+  </div>
+  <div class="kk-back__foot">
+    <span class="kk-back__brand">by Kertas Kecil Project</span>
+    <span>Berry's 3rd Birthday, 2026</span>
   </div>
 </section>""", hitung=False)
 
@@ -1054,9 +1045,9 @@ def sampul_belakang():
 def warnai_page(nama, title, instr, note, badge="Mulai"):
     """Halaman mewarnai: gambar garis dari folder assets/."""
     ada = (ASSET_DIR / nama).exists()
-    isi = (f'<img src="assets/{nama}" class="kk-color__img" alt="">' if ada else
+    isi = (f'<img src="{ASSET_NAME}/{nama}" class="kk-color__img" alt="">' if ada else
            '<div class="kk-color__ph">Gambar mewarnai belum ada.<br>'
-           f'Simpan berkasnya sebagai <code>assets/{nama}</code>.</div>')
+           f'Simpan berkasnya sebagai <code>{ASSET_NAME}/{nama}</code>.</div>')
     page(title, instr, f'<div class="kk-center">{isi}</div>', note, "Warna", "paint-brush",
          badge, "kk-skill-icon--color")
 
@@ -1418,9 +1409,9 @@ def bagian_7():
 def gambar_penuh_aktivitas(nama, title, instr, note, skill, icon, badge="Mulai", icon_cls=""):
     """Halaman aktivitas yang isinya satu gambar besar dari folder assets/."""
     ada = (ASSET_DIR / nama).exists()
-    isi = (f'<img src="assets/{nama}" class="kk-color__img" alt="">' if ada else
+    isi = (f'<img src="{ASSET_NAME}/{nama}" class="kk-color__img" alt="">' if ada else
            '<div class="kk-color__ph">Gambar belum ada.<br>'
-           f'Simpan berkasnya sebagai <code>assets/{nama}</code>.</div>')
+           f'Simpan berkasnya sebagai <code>{ASSET_NAME}/{nama}</code>.</div>')
     page(title, instr, f'<div class="kk-center">{isi}</div>', note, skill, icon, badge, icon_cls)
 
 
@@ -1692,13 +1683,24 @@ CSS = """
   .kk-toc__no--kosong { background: transparent; }
 
   /* sampul belakang */
-  .kk-back { padding: 0 !important; background: #4E9E52; color: #fff; }
-  .kk-back__in { padding: 26mm 20mm; display: flex; flex-direction: column; height: 100%;
-                 box-sizing: border-box; }
-  .kk-logo--inv .kk-logo__name { color: #fff; }
-  .kk-logo--inv .kk-logo__mark { background: #fff; }
-  .kk-back__lead { font: 600 20pt/1.2 var(--kk-font-title); margin: 8mm 0 6mm; }
-  .kk-back__p { font: 400 11pt/1.6 var(--kk-font-ui); margin: 0 0 5mm; max-width: 150mm; }
+  .kk-back { padding: 0 !important; background: #1B2340; color: #fff; position: relative;
+             overflow: hidden; }
+  .kk-back__img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover;
+                  object-position: center 30%; }
+  .kk-back__badge { position: absolute; top: 15mm; right: 26mm; width: 38mm; height: 38mm;
+                    border-radius: 50%; background: #F6E7B8; color: #1B2340; display: flex;
+                    flex-direction: column; align-items: center; justify-content: center;
+                    text-align: center; font: 600 9pt/1.25 var(--kk-font-ui); }
+  .kk-back__badge b { font: 700 17pt/1 var(--kk-font-title); margin-bottom: 2mm; }
+  .kk-back__txt { position: absolute; top: 86mm; left: 22mm; right: 22mm;
+                  font: 500 13pt/1.55 var(--kk-font-ui); }
+  .kk-back__txt p { margin: 0 0 2mm; max-width: 140mm; }
+  .kk-back__warn { font-size: 9.5pt !important; opacity: .8; margin-top: 5mm !important; }
+  .kk-back__foot { position: absolute; left: 0; right: 0; bottom: 0; padding: 14mm 22mm 10mm;
+                   display: flex; justify-content: space-between; align-items: flex-end;
+                   font: 500 9.5pt/1 var(--kk-font-ui);
+                   background: linear-gradient(to top, rgba(27,35,64,.9), rgba(27,35,64,0)); }
+  .kk-back__brand { font: 700 11pt/1 var(--kk-font-title); }
   .kk-seri { margin-top: auto; }
   .kk-seri__t { font: 600 9pt/1 var(--kk-font-ui); opacity: .85; }
   .kk-seri__row { display: flex; align-items: flex-end; gap: 3mm; margin-top: 4mm; }
