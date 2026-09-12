@@ -1108,11 +1108,9 @@ def qr_svg(cls=""):
 
 def halaman_milik():
     raw_page("""<section class="kk-page kk-milik">
-  <p class="kk-milik__t">THIS BOOK BELONGS TO</p>
+  <p class="kk-milik__lead">Berry turned three,<br>and asked the fairies<br>to send this book to you.</p>
+  <p class="kk-milik__t">This book belongs to</p>
   <div class="kk-milik__line"></div>
-  <p class="kk-milik__sub">Write your name here, any way you like. Backwards letters
-    are allowed.</p>
-  <p class="kk-milik__foot">from Berry</p>
 </section>""", hitung=False)
 
 
@@ -1846,12 +1844,11 @@ CSS = """
   .kk-back__num { font: 600 6.6pt/1 var(--kk-font-ui); color: #13324F; letter-spacing: .04em; }
   .kk-milik { background: #FDF7EC; display: flex; flex-direction: column;
               align-items: center; justify-content: center; text-align: center; }
-  .kk-milik__t { font: 700 26pt/1.25 var(--kk-font-title); color: #13324F;
-                 letter-spacing: .04em; margin: 0; }
-  .kk-milik__line { width: 118mm; border-bottom: 0.8mm solid #CF7B9D; height: 26mm; }
-  .kk-milik__sub { font: 400 11.5pt/1.6 var(--kk-font-ui); color: #4A5A6B; max-width: 118mm;
-                   margin: 10mm 0 0; }
-  .kk-milik__foot { font: 600 10pt/1 var(--kk-font-ui); color: #13324F; margin-top: 16mm; }
+  .kk-milik__lead { font-family: "Great Vibes", cursive; font-size: 30pt; line-height: 1.5;
+                    color: #CF7B9D; margin: 0 0 26mm; }
+  .kk-milik__t { font-family: "Great Vibes", cursive; font-size: 34pt; line-height: 1.2;
+                 color: #13324F; margin: 0 0 4mm; }
+  .kk-milik__line { width: 118mm; border-bottom: 0.8mm solid #CF7B9D; height: 24mm; }
   .kk-back__ig { font: 600 11pt/1 var(--kk-font-ui); margin: 6mm 0 0; opacity: .95; }
   .kk-serigrid { flex: 1; display: grid; grid-template-columns: 1fr 1fr; gap: 4mm;
                  min-height: 0; }
