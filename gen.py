@@ -1092,6 +1092,30 @@ def sampul_belakang():
 </section>""", hitung=False)
 
 
+QR_IG = "1fcb2cef7f,1043509a41,17503ef65d,174e4c1d5d,175ea5095d,10566c5741,1fd555557f,154ea300,13e0c4afd1,b56b94d18,698914043,fc4262135,1e79fafdd0,b3e87b4a0,7ddf486e5,1580287e2b,166a19a962,f9a6e4015,10ecabd53,dd5bf8bbf,6e1623971,1baa5e397,7cc93b1e8,599470612,1ee9cc2774,17e1b0821,19ab71368,1551a269ac,17f17fe7f7,115c7a500,155e5f57f,1f11b1fa41,7f199395d,12d6ce6c5d,660ccfc5d,d257bd241,1c89e31f7f"
+
+
+def qr_svg(cls=""):
+    rows = QR_IG.split(",")
+    n = len(rows)
+    r = "".join(
+        f'<rect x="{x}" y="{y}" width="1" height="1"/>'
+        for y, h in enumerate(rows) for x in range(n) if int(h, 16) >> x & 1)
+    return (f'<svg class="kk-qr {cls}" viewBox="-1 -1 {n + 2} {n + 2}" '
+            f'shape-rendering="crispEdges"><rect x="-1" y="-1" width="{n + 2}" '
+            f'height="{n + 2}" fill="#fff"/><g fill="#13324F">{r}</g></svg>')
+
+
+def halaman_milik():
+    raw_page("""<section class="kk-page kk-milik">
+  <p class="kk-milik__t">THIS BOOK BELONGS TO</p>
+  <div class="kk-milik__line"></div>
+  <p class="kk-milik__sub">Write your name here, any way you like. Backwards letters
+    are allowed.</p>
+  <p class="kk-milik__foot">from Berry</p>
+</section>""", hitung=False)
+
+
 def sampul_belakang_berry():
     ada = (ASSET_DIR / "cover_belakang.jpeg").exists()
     gbr = (f'<img src="{ASSET_NAME}/cover_belakang.jpeg" class="kk-back__ill" alt="">' if ada
@@ -1104,10 +1128,6 @@ def sampul_belakang_berry():
          "together. We hope your family has fun with it, and that this little book stays "
          "with you as something to remember Berry's third birthday."]
     isi = "".join(f'<p class="kk-back__p">{t}</p>' for t in P)
-    random.seed(13)
-    bars = "".join(
-        f'<span class="kk-bar" style="width:{w}px"></span>'
-        for w in (random.choice((1, 1, 2, 3)) for _ in range(48)))
     raw_page(f"""<section class="kk-page kk-back kk-back--berry">
   <div class="kk-back__art">{gbr}</div>
   <div class="kk-back__over">
@@ -1122,8 +1142,8 @@ def sampul_belakang_berry():
         <span class="kk-back__fine">Printed at home, with love. Not for sale.</span>
       </div>
       <div class="kk-back__code">
-        <div class="kk-back__bars">{bars}</div>
-        <span class="kk-back__num">9 781312 345678</span>
+        {qr_svg()}
+        <span class="kk-back__num">@kertaskecil.project</span>
       </div>
     </div>
   </div>
@@ -1822,9 +1842,16 @@ CSS = """
                    max-width: 78mm; }
   .kk-back__code { background: #fff; border-radius: 1.4mm; padding: 2.6mm 3mm 1.8mm;
                    display: flex; flex-direction: column; align-items: center; gap: 1.2mm; }
-  .kk-back__bars { display: flex; align-items: flex-end; gap: 1px; height: 13mm; }
-  .kk-bar { display: block; height: 100%; background: #13324F; }
-  .kk-back__num { font: 600 7pt/1 var(--kk-font-ui); color: #13324F; letter-spacing: .08em; }
+  .kk-qr { width: 21mm; height: 21mm; display: block; }
+  .kk-back__num { font: 600 6.6pt/1 var(--kk-font-ui); color: #13324F; letter-spacing: .04em; }
+  .kk-milik { background: #FDF7EC; display: flex; flex-direction: column;
+              align-items: center; justify-content: center; text-align: center; }
+  .kk-milik__t { font: 700 26pt/1.25 var(--kk-font-title); color: #13324F;
+                 letter-spacing: .04em; margin: 0; }
+  .kk-milik__line { width: 118mm; border-bottom: 0.8mm solid #CF7B9D; height: 26mm; }
+  .kk-milik__sub { font: 400 11.5pt/1.6 var(--kk-font-ui); color: #4A5A6B; max-width: 118mm;
+                   margin: 10mm 0 0; }
+  .kk-milik__foot { font: 600 10pt/1 var(--kk-font-ui); color: #13324F; margin-top: 16mm; }
   .kk-back__ig { font: 600 11pt/1 var(--kk-font-ui); margin: 6mm 0 0; opacity: .95; }
   .kk-serigrid { flex: 1; display: grid; grid-template-columns: 1fr 1fr; gap: 4mm;
                  min-height: 0; }
@@ -1850,6 +1877,7 @@ CSS = """
 def main():
     sampul_depan()
     if EDISI_HADIAH:
+        halaman_milik()
         surat_berry()
     panduan_orang_tua()             # halaman 1
     NUM[0] = 2                      # halaman 2 disediakan untuk daftar isi
