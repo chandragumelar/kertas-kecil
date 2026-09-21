@@ -12,8 +12,10 @@ from pathlib import Path
 
 ROOT = Path(__file__).parent
 SVG_DIR = ROOT / "svg"
-ASSET_DIR = ROOT / "assets"
+ASSET_NAME = os.environ.get("KK_ASSETS", "assets")
+ASSET_DIR = ROOT / ASSET_NAME
 random.seed(11)
+EDISI_HADIAH = os.environ.get("KK_EDISI", "") == "berry"
 
 # ============================================================ aset SVG
 # Alias pendek untuk berkas yang sering dipakai. Berkas lain terdaftar
@@ -343,7 +345,7 @@ def page(title, instruction, body, note, skill, icon, badge="Mulai", icon_cls=""
     </div>
   </div>
   <footer class="kk-footer">
-    <span class="kk-logo"><span class="kk-logo__mark"></span><span class="kk-logo__name">Kertas Kecil</span></span>
+    <span class="kk-logo"><span class="kk-logo__mark"></span><span class="kk-logo__name">by Kertas Kecil Project</span></span>
     <span>{skill}</span><span>{NUM[0]}</span>
   </footer>
 </section>""")
@@ -357,7 +359,7 @@ def raw_page(html, hitung=True):
 
 def gambar_penuh(nama, kelas=""):
     raw_page(f'<section class="kk-page kk-fullpage {kelas}">'
-             f'<img src="assets/{nama}" class="kk-fullpage__img" alt=""></section>',
+             f'<img src="{ASSET_NAME}/{nama}" class="kk-fullpage__img" alt=""></section>',
              hitung=False)
 
 
@@ -790,7 +792,7 @@ def cut_page(title, instr, body, note, badge="Tantangan"):
       </div>
     </div>
     <footer class="kk-footer">
-      <span class="kk-logo"><span class="kk-logo__mark"></span><span class="kk-logo__name">Kertas Kecil</span></span>
+      <span class="kk-logo"><span class="kk-logo__mark"></span><span class="kk-logo__name">by Kertas Kecil Project</span></span>
       <span>Gunting</span><span>{NUM[0]}</span>
     </footer>
   </div>
@@ -808,13 +810,13 @@ def strip_gunting(kind, key):
                  f'<path d="M2 10 H158" fill="none" stroke="{C["berry"]}" stroke-width="3.6" '
                  f'stroke-dasharray="8 6" stroke-linecap="round"/></svg>')
     elif kind == "gelombang":
-        garis = ('<svg class="kk-cutsvg" viewBox="0 0 160 22" preserveAspectRatio="none">'
-                 f'<path d="M2 11 Q22 1 42 11 Q62 21 82 11 Q102 1 122 11 Q142 21 158 11" '
+        garis = ('<svg class="kk-cutsvg kk-cutsvg--big" viewBox="0 0 160 60" preserveAspectRatio="none">'
+                 f'<path d="M4 30 C17 -2 37 -2 50 30 S83 62 96 30 S129 -2 142 30 Q150 46 156 44" '
                  f'fill="none" stroke="{C["berry"]}" stroke-width="3.6" stroke-dasharray="8 6" '
                  f'stroke-linecap="round"/></svg>')
     else:
-        garis = ('<svg class="kk-cutsvg" viewBox="0 0 160 22" preserveAspectRatio="none">'
-                 f'<path d="M2 18 L22 4 L42 18 L62 4 L82 18 L102 4 L122 18 L142 4 L158 18" '
+        garis = ('<svg class="kk-cutsvg kk-cutsvg--big" viewBox="0 0 160 60" preserveAspectRatio="none">'
+                 f'<path d="M4 54 L30 6 L56 54 L82 6 L108 54 L134 6 L156 46" '
                  f'fill="none" stroke="{C["berry"]}" stroke-width="3.6" stroke-dasharray="8 6" '
                  f'stroke-linecap="round"/></svg>')
     tangan = f'<span class="kk-cut-ico">{pico("scissors")}</span>'
@@ -837,6 +839,15 @@ def cut_shape_page(title, instr, shapes, note, badge="Tantangan"):
     cut_page(title, instr, f'<div class="kk-cutgrid2">{"".join(sel)}</div>', note, badge)
 
 
+def _pisah_lembar():
+    """Garis potong mendatar supaya orang tua bisa memisahkan tiap lembar dulu."""
+    return ('<div class="kk-fringesep">'
+            f'<span class="kk-fringesep__ic">{pico("scissors")}</span>'
+            '<svg class="kk-fringesep__l" viewBox="0 0 160 6" preserveAspectRatio="none">'
+            f'<path d="M1 3 H159" fill="none" stroke="{C["blueberry"]}" stroke-width="1.4" '
+            'stroke-dasharray="4 4" stroke-linecap="round"/></svg></div>')
+
+
 def cut_fringe_page(title, instr, baris, note, badge="Mulai"):
     """Rumbai: potongan pendek dari tepi ke dalam, tidak sampai putus.
     Satu buka tutup gunting per potongan, jadi cocok untuk pemula."""
@@ -851,7 +862,7 @@ def cut_fringe_page(title, instr, baris, note, badge="Mulai"):
                    f'<rect x="2" y="1" width="136" height="54" rx="4" fill="{cr(warna)}" '
                    f'fill-opacity=".35" stroke="{C["blueberry"]}" stroke-width="1.4"/>'
                    f'{garis}</svg></div>')
-    cut_page(title, instr, "".join(sel), note, badge)
+    cut_page(title, instr, _pisah_lembar().join(sel), note, badge)
 
 
 def cut_half_page(title, instr, baris, note, badge="Lanjut"):
@@ -864,7 +875,7 @@ def cut_half_page(title, instr, baris, note, badge="Lanjut"):
                    f'fill-opacity=".35" stroke="{C["blueberry"]}" stroke-width="1.4"/>'
                    f'<path d="M70 0 V56" fill="none" stroke="{C["berry"]}" stroke-width="2.6" '
                    f'stroke-dasharray="6 5" stroke-linecap="round"/></svg></div>')
-    cut_page(title, instr, "".join(sel), note, badge)
+    cut_page(title, instr, _pisah_lembar().join(sel), note, badge)
 
 
 def cut_cards_page(title, instr, cards, note, badge="Tantangan"):
@@ -876,6 +887,37 @@ def cut_cards_page(title, instr, cards, note, badge="Tantangan"):
 # ============================================================ halaman khusus
 def sampul_depan():
     gambar_penuh("cover_depan.jpeg")
+
+
+
+def surat_berry():
+    """Halaman surat ulang tahun, hanya muncul di edisi hadiah."""
+    baris = [
+        "Hello, my friends! It's Berry!",
+        "I have something to tell you. I'm THREE! My birthday was on September 13th.",
+        "Three is a big number, I think. Mami says I am getting bigger and bigger. "
+        "Papi says I am still his little girl. I think I am both.",
+        "On my birthday I had cake. I played with Mami and Papi all day. "
+        "It was a very happy day.",
+        "And I made this book too! Mami and Papi helped me, because I wanted a book "
+        "with fairies and flowers and butterflies and lots of pretty things.",
+        "There are fairies in my book. Mami says they live in the garden, behind the big "
+        "leaves. Sometimes I go and look for them. I have not found one yet, but I keep looking.",
+        "So I asked, \u201cCan my friends play with my book too?\u201d "
+        "Mami said yes. Papi said yes too.",
+        "So here it is! You can color and draw and look for things.",
+        "You don't have to do it perfectly. I don't! Sometimes my pictures come out funny. "
+        "Sometimes I pick funny colors. Sometimes I say, \u201cMami, help me!\u201d",
+        "Have fun with my little book. Now let's play!",
+    ]
+    isi = "".join(f'<p class="kk-surat__p">{t}</p>' for t in baris)
+    raw_page(f"""<section class="kk-page kk-surat">
+  <div class="kk-content kk-content--text">
+    <h1 class="kk-surat__judul">For My Friends</h1>
+    {isi}
+    <p class="kk-surat__ttd">Love <span class="kk-surat__love">\u2665</span><br><span class="kk-surat__nama">Berry</span></p>
+  </div>
+</section>""", hitung=False)
 
 
 def daftar_isi():
@@ -901,7 +943,7 @@ def daftar_isi():
     </div>
   </div>
   <footer class="kk-footer">
-    <span class="kk-logo"><span class="kk-logo__mark"></span><span class="kk-logo__name">Kertas Kecil</span></span>
+    <span class="kk-logo"><span class="kk-logo__mark"></span><span class="kk-logo__name">by Kertas Kecil Project</span></span>
     <span>Isi bundel</span><span>2</span>
   </footer>
 </section>""")
@@ -944,7 +986,7 @@ def panduan_orang_tua():
   </header>
   <div class="kk-content kk-content--text">{isi}</div>
   <footer class="kk-footer">
-    <span class="kk-logo"><span class="kk-logo__mark"></span><span class="kk-logo__name">Kertas Kecil</span></span>
+    <span class="kk-logo"><span class="kk-logo__mark"></span><span class="kk-logo__name">by Kertas Kecil Project</span></span>
     <span>Panduan</span><span>{NUM[0]}</span>
   </footer>
 </section>""")
@@ -1018,7 +1060,7 @@ def bundel_lainnya():
     </div>
   </div>
   <footer class="kk-footer">
-    <span class="kk-logo"><span class="kk-logo__mark"></span><span class="kk-logo__name">Kertas Kecil</span></span>
+    <span class="kk-logo"><span class="kk-logo__mark"></span><span class="kk-logo__name">by Kertas Kecil Project</span></span>
     <span>Seri Kertas Kecil</span><span>{NUM[0]}</span>
   </footer>
 </section>""")
@@ -1032,11 +1074,10 @@ def sampul_belakang():
     raw_page(f"""<section class="kk-page kk-back">
   <div class="kk-back__in">
     <div class="kk-logo kk-logo--inv"><span class="kk-logo__mark"></span>
-      <span class="kk-logo__name">Kertas Kecil</span></div>
+      <span class="kk-logo__name">by Kertas Kecil Project</span></div>
     <p class="kk-back__lead">Buku Aktivitas Anak Usia 3 Tahun</p>
-    <p class="kk-back__p">Kertas Kecil adalah buku aktivitas untuk anak usia tiga tahun yang
-      dikerjakan cukup dengan krayon dan gunting. Tidak perlu stiker, lem, atau alat
-      tambahan apa pun.</p>
+    <p class="kk-back__p">Ini buku aktivitas untuk anak usia tiga tahun. Cukup krayon dan
+      gunting, tidak perlu stiker, lem, atau alat tambahan apa pun.</p>
     <p class="kk-back__p">Isinya sembilan bagian: menarik garis dan coretan, menelusuri angka
       dan huruf, mencocokkan dan membedakan, pola, berhitung sampai sepuluh, mewarnai,
       mengikuti jalan berliku, mengenali perasaan, dan menggunting. Setiap halaman punya satu
@@ -1051,12 +1092,68 @@ def sampul_belakang():
 </section>""", hitung=False)
 
 
+QR_IG = "1fcb2cef7f,1043509a41,17503ef65d,174e4c1d5d,175ea5095d,10566c5741,1fd555557f,154ea300,13e0c4afd1,b56b94d18,698914043,fc4262135,1e79fafdd0,b3e87b4a0,7ddf486e5,1580287e2b,166a19a962,f9a6e4015,10ecabd53,dd5bf8bbf,6e1623971,1baa5e397,7cc93b1e8,599470612,1ee9cc2774,17e1b0821,19ab71368,1551a269ac,17f17fe7f7,115c7a500,155e5f57f,1f11b1fa41,7f199395d,12d6ce6c5d,660ccfc5d,d257bd241,1c89e31f7f"
+
+
+def qr_svg(cls=""):
+    rows = QR_IG.split(",")
+    n = len(rows)
+    r = "".join(
+        f'<rect x="{x}" y="{y}" width="1" height="1"/>'
+        for y, h in enumerate(rows) for x in range(n) if int(h, 16) >> x & 1)
+    return (f'<svg class="kk-qr {cls}" viewBox="-1 -1 {n + 2} {n + 2}" '
+            f'shape-rendering="crispEdges"><rect x="-1" y="-1" width="{n + 2}" '
+            f'height="{n + 2}" fill="#fff"/><g fill="#13324F">{r}</g></svg>')
+
+
+def halaman_milik():
+    raw_page("""<section class="kk-page kk-milik">
+  <p class="kk-milik__lead">Berry turned three,<br>and asked the fairies<br>to send this book to you.</p>
+  <p class="kk-milik__t">This book belongs to</p>
+  <div class="kk-milik__line"></div>
+</section>""", hitung=False)
+
+
+def sampul_belakang_berry():
+    ada = (ASSET_DIR / "cover_belakang.jpeg").exists()
+    gbr = (f'<img src="{ASSET_NAME}/cover_belakang.jpeg" class="kk-back__ill" alt="">' if ada
+           else '<div class="kk-back__ph">cover_belakang.jpeg</div>')
+    P = ["Thank you for letting your little one play with this book.",
+         "Berry made it with Mami and Papi for her third birthday, and she wanted her "
+         "friends to have one too.",
+         "Sit down with your child while they color and cut. Talk about the pictures. "
+         "Let them go outside the lines. The pages are just a reason to spend a slow hour "
+         "together. We hope your family has fun with it, and that this little book stays "
+         "with you as something to remember Berry's third birthday."]
+    isi = "".join(f'<p class="kk-back__p">{t}</p>' for t in P)
+    raw_page(f"""<section class="kk-page kk-back kk-back--berry">
+  <div class="kk-back__art">{gbr}</div>
+  <div class="kk-back__over">
+    <div class="kk-back__txt">{isi}</div>
+    <p class="kk-back__ig">Berry, September 13th</p>
+    <div class="kk-back__meta">
+      <div class="kk-back__col">
+        <span class="kk-back__brand">by Kertas Kecil Project</span>
+        <span class="kk-back__ig2">@kertaskecil.project</span>
+        <span class="kk-back__fine">Ages 3+ &middot; crayons and scissors &middot;
+          scissors with a grown-up nearby</span>
+        <span class="kk-back__fine">Printed at home, with love. Not for sale.</span>
+      </div>
+      <div class="kk-back__code">
+        {qr_svg()}
+        <span class="kk-back__num">@kertaskecil.project</span>
+      </div>
+    </div>
+  </div>
+</section>""", hitung=False)
+
+
 def warnai_page(nama, title, instr, note, badge="Mulai"):
     """Halaman mewarnai: gambar garis dari folder assets/."""
     ada = (ASSET_DIR / nama).exists()
-    isi = (f'<img src="assets/{nama}" class="kk-color__img" alt="">' if ada else
+    isi = (f'<img src="{ASSET_NAME}/{nama}" class="kk-color__img" alt="">' if ada else
            '<div class="kk-color__ph">Gambar mewarnai belum ada.<br>'
-           f'Simpan berkasnya sebagai <code>assets/{nama}</code>.</div>')
+           f'Simpan berkasnya sebagai <code>{ASSET_NAME}/{nama}</code>.</div>')
     page(title, instr, f'<div class="kk-center">{isi}</div>', note, "Warna", "paint-brush",
          badge, "kk-skill-icon--color")
 
@@ -1418,9 +1515,9 @@ def bagian_7():
 def gambar_penuh_aktivitas(nama, title, instr, note, skill, icon, badge="Mulai", icon_cls=""):
     """Halaman aktivitas yang isinya satu gambar besar dari folder assets/."""
     ada = (ASSET_DIR / nama).exists()
-    isi = (f'<img src="assets/{nama}" class="kk-color__img" alt="">' if ada else
+    isi = (f'<img src="{ASSET_NAME}/{nama}" class="kk-color__img" alt="">' if ada else
            '<div class="kk-color__ph">Gambar belum ada.<br>'
-           f'Simpan berkasnya sebagai <code>assets/{nama}</code>.</div>')
+           f'Simpan berkasnya sebagai <code>{ASSET_NAME}/{nama}</code>.</div>')
     page(title, instr, f'<div class="kk-center">{isi}</div>', note, skill, icon, badge, icon_cls)
 
 
@@ -1474,13 +1571,14 @@ def bagian_9():
     cut_fringe_page("Gunting Rumbai", "Gunting pendek dari tepi atas ke bawah. Jangan sampai "
                     "kertasnya putus jadi dua.",
                     [("cat", "sunny"), ("dog", "sky"), ("rooster", "leaf")],
-                    "Rumbai melatih anak berhenti sebelum ujung, dan menahan gunting justru "
-                    "lebih sulit daripada memotong terus. Hasilnya bisa dipakai jadi rambut "
-                    "atau rumput di gambar lain.")
+                    "Potong dulu di garis biru supaya tiga lembarnya terpisah, baru berikan satu "
+                    "per satu kepada anak. Rumbai melatih anak berhenti sebelum ujung, dan "
+                    "menahan gunting justru lebih sulit daripada memotong terus.")
     cut_half_page("Gunting Jadi Dua", "Gunting di garis merah sampai kertasnya jadi dua.",
                   [("apple2", "berry"), ("bird", "grape"), ("fish", "orange")],
-                  "Memotong tembus dari tepi ke tepi menuntut tangan satunya ikut memutar "
-                  "kertas. Potongan yang keluar garis tetap dihitung berhasil.")
+                  "Potong dulu di garis biru supaya tiga lembarnya terpisah, baru berikan satu "
+                  "per satu kepada anak. Memotong tembus dari tepi ke tepi menuntut tangan "
+                  "satunya ikut memutar kertas.")
     cut_lines_page("Gunting Garis Lurus", "Gunting mengikuti garis sampai ke ujung.",
                    [("lurus", "pig"), ("lurus", "rooster"), ("lurus", "rabbit")],
                    "Bagian tersulit bukan tangan yang memegang gunting, melainkan tangan lain "
@@ -1496,18 +1594,18 @@ def bagian_9():
                    "bersama dengan Anda memegang kertasnya dan anak menggunting.")
     cut_cards_page("Gunting Jadi Kartu Hewan",
                    "Gunting di garis putus-putus, lalu pakai kartunya untuk main tebak-tebakan.",
-                   [("cat", "kucing"), ("dog", "anjing"), ("rooster", "ayam")],
+                   [("cat", "kucing"), ("dog", "anjing"), ("rooster", "ayam"), ("pig", "babi")],
                    "Setelah digunting, sebar kartunya di lantai dan minta anak mencari satu per "
                    "satu sesuai nama yang Anda sebut. Simpan di amplop supaya tidak hilang.")
     cut_cards_page("Kartu Makanan",
                    "Gunting di garis putus-putus, lalu kelompokkan mana yang tumbuh di kebun "
                    "dan mana yang dimasak di dapur.",
-                   [("apple2", "apel"), ("carrot", "wortel"), ("pizza", "piza")],
+                   [("apple2", "apel"), ("carrot", "wortel"), ("pizza", "piza"), ("melon", "melon")],
                    "Mengelompokkan lebih berguna daripada menghafal nama, jadi terima alasan "
                    "apa pun yang masuk akal bagi anak. Kartunya bisa dipakai lagi saat belanja.")
     cut_cards_page("Kartu Benda di Rumah",
                    "Gunting di garis putus-putus, lalu cari benda aslinya di rumah.",
-                   [("cup", "gelas anak"), ("hat", "topi"), ("key", "kunci")],
+                   [("cup", "gelas anak"), ("hat", "topi"), ("key", "kunci"), ("glasses", "kacamata")],
                    "Mencocokkan gambar dengan benda asli membuat kartu ini terasa berguna, "
                    "bukan sekadar guntingan. Sembunyikan satu kartu lalu minta anak menebak "
                    "benda mana yang hilang.")
@@ -1559,6 +1657,10 @@ CSS = """
   .kk-prow .kk-pseq { gap: 1.6mm; }
   .kk-fringe { display: flex; align-items: center; gap: 6mm; }
   .kk-fringesvg { flex: 1; height: 24mm; min-width: 0; }
+  .kk-fringesep { display: flex; align-items: center; gap: 3mm; }
+  .kk-fringesep__ic { width: 5mm; height: 5mm; color: var(--kk-blueberry); flex: none; }
+  .kk-fringesep__ic .kk-pico { width: 5mm; height: 5mm; }
+  .kk-fringesep__l { flex: 1; height: 3mm; min-width: 0; }
 
   /* menelusuri garis */
   .kk-trow { display: flex; align-items: center; gap: 5mm; position: relative;
@@ -1643,6 +1745,15 @@ CSS = """
   .kk-face__label { font: 600 12pt/1 var(--kk-font-ui); color: var(--kk-text); }
   .kk-facesvg { width: 46mm; height: 46mm; }
 
+  /* surat ulang tahun, edisi hadiah */
+  .kk-surat .kk-content--text { justify-content: center; gap: 0; }
+  .kk-surat__judul { font-size: 26pt; text-align: center; margin: 0 0 7mm; }
+  .kk-surat__p { font-size: 12.5pt; line-height: 1.75; margin: 0 0 4.5mm; }
+  .kk-surat__ttd { font-size: 12.5pt; line-height: 1.6; margin: 6mm 0 0; text-align: right; }
+  .kk-surat__nama { font-family: "Great Vibes", cursive; font-size: 42pt;
+                    line-height: 1.1; color: #CF7B9D; }
+  .kk-surat__love { color: #D6294B; }
+
   /* halaman penuh gambar */
   .kk-fullpage { padding: 0 !important; overflow: hidden; }
   .kk-fullpage__img { width: 100%; height: 100%; object-fit: cover; display: block; }
@@ -1665,6 +1776,7 @@ CSS = """
   .kk-cut-ico { width: 8mm; height: 8mm; color: var(--kk-berry); flex: none; }
   .kk-cut-ico .kk-pico { width: 8mm; height: 8mm; }
   .kk-cutsvg { flex: 1; height: 13mm; min-width: 0; }
+  .kk-cutsvg--big { height: 32mm; }
   .kk-cutsvg--short { flex: 0 0 42mm; }
   .kk-cutfill { flex: 1; }
   .kk-cutgrid2 { flex: 1; display: grid; grid-template-columns: 1fr 1fr; gap: 4mm;
@@ -1705,6 +1817,38 @@ CSS = """
                 color: #fff; display: flex; align-items: flex-end; justify-content: center;
                 padding-bottom: 3mm; font: 600 16pt/1 var(--kk-font-title); }
   .kk-seri__i--on { background: #fff; color: #4E9E52; }
+  .kk-back--berry { background: #13324F; position: relative; overflow: hidden; padding: 0 !important; }
+  .kk-back--berry .kk-back__art { position: absolute; inset: 0; margin: 0; display: block; }
+  .kk-back__ill { width: 100%; height: 100%; object-fit: cover; object-position: center 38%;
+                  display: block; border-radius: 0; }
+  .kk-back__ph { position: absolute; inset: 10mm; border: 0.6mm dashed rgba(255,255,255,.7);
+                 border-radius: 3mm; display: flex; align-items: center; justify-content: center;
+                 font: 600 11pt/1 var(--kk-font-ui); }
+  .kk-back__over { position: absolute; top: 0; left: 0; right: 0; padding: 34mm 20mm 18mm;
+                   background: linear-gradient(to bottom, rgba(19,50,79,.97) 72%,
+                               rgba(19,50,79,.82) 86%, rgba(19,50,79,0)); }
+  .kk-back--berry .kk-back__txt { max-width: 152mm; }
+  .kk-back--berry .kk-back__p { font-size: 11.5pt; line-height: 1.7; margin: 0 0 5mm;
+                                max-width: none; }
+  .kk-back--berry .kk-back__ig { margin: 7mm 0 0; opacity: 1; color: #E8C35D; }
+  .kk-back__meta { display: flex; align-items: flex-end; justify-content: space-between;
+                   gap: 10mm; margin-top: 14mm; }
+  .kk-back__col { display: flex; flex-direction: column; gap: 1.6mm; }
+  .kk-back__brand { font: 700 11pt/1.2 var(--kk-font-title); color: #fff; }
+  .kk-back__ig2 { font: 600 9.5pt/1.2 var(--kk-font-ui); color: #E8C35D; }
+  .kk-back__fine { font: 400 7.6pt/1.35 var(--kk-font-ui); color: rgba(255,255,255,.72);
+                   max-width: 78mm; }
+  .kk-back__code { background: #fff; border-radius: 1.4mm; padding: 2.6mm 3mm 1.8mm;
+                   display: flex; flex-direction: column; align-items: center; gap: 1.2mm; }
+  .kk-qr { width: 21mm; height: 21mm; display: block; }
+  .kk-back__num { font: 600 6.6pt/1 var(--kk-font-ui); color: #13324F; letter-spacing: .04em; }
+  .kk-milik { background: #FDF7EC; display: flex; flex-direction: column;
+              align-items: center; justify-content: center; text-align: center; }
+  .kk-milik__lead { font-family: "Great Vibes", cursive; font-size: 30pt; line-height: 1.5;
+                    color: #CF7B9D; margin: 0 0 26mm; }
+  .kk-milik__t { font-family: "Great Vibes", cursive; font-size: 34pt; line-height: 1.2;
+                 color: #13324F; margin: 0 0 4mm; }
+  .kk-milik__line { width: 118mm; border-bottom: 0.8mm solid #CF7B9D; height: 24mm; }
   .kk-back__ig { font: 600 11pt/1 var(--kk-font-ui); margin: 6mm 0 0; opacity: .95; }
   .kk-serigrid { flex: 1; display: grid; grid-template-columns: 1fr 1fr; gap: 4mm;
                  min-height: 0; }
@@ -1729,12 +1873,15 @@ CSS = """
 
 def main():
     sampul_depan()
+    if EDISI_HADIAH:
+        halaman_milik()
+        surat_berry()
     panduan_orang_tua()             # halaman 1
     NUM[0] = 2                      # halaman 2 disediakan untuk daftar isi
     for f in (bagian_1, bagian_2, bagian_3, bagian_4, bagian_5,
               bagian_6, bagian_7, bagian_8, bagian_9):
         f()
-    sampul_belakang()
+    sampul_belakang_berry() if EDISI_HADIAH else sampul_belakang()
 
     daftar_isi()
     PAGES.insert(2, PAGES.pop())    # daftar isi jadi lembar ketiga
